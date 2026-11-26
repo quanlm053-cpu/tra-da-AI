@@ -1,0 +1,21 @@
+{
+  "name": "club-equipment-lending-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "start": "node main.js",
+    "migrate": "node main.js migrate",
+    "seed": "node main.js seed",
+    "test": "node --test test/http.test.js",
+    "test:sqlserver": "node --test test/sqlserver.test.js"
+  },
+  "dependencies": {
+    "mssql": "12.7.14"
+  },
+  "optionalDependencies": {
+    "msnodesqlv8": "5.1.5"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type":"object",
+  "additionalProperties":false,
+  "required":["outcome","summary","checks","task_plan","bugs","completed_tasks"],
+  "properties":{
+    "completed_tasks":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["issue_id","evidence","artifacts"],"properties":{"issue_id":{"type":"integer"},"evidence":{"type":"string"},"artifacts":{"type":"array","items":{"type":"string"},"minItems":1}}}},
+    "outcome":{"type":"string","enum":["passed","needs_changes","blocked"]},
+    "summary":{"type":"string"},
+    "checks":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["command","result"],"properties":{"command":{"type":"string"},"result":{"type":"string","enum":["passed","failed","not_run"]}}}},
+    "task_plan":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["issue_id","role","subject","description"],"properties":{"issue_id":{"type":"integer"},"role":{"type":"string","enum":["ba","frontend","backend","reviewer","qa","pm"]},"subject":{"type":"string"},"description":{"type":"string"}}}},
+    "bugs":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["role","subject","description"],"properties":{"role":{"type":"string","enum":["frontend","backend"]},"subject":{"type":"string"},"description":{"type":"string"}}}}
+  }
+}

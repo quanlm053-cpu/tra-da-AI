@@ -1,0 +1,219 @@
+@import './inter-font.css';
+.lending-office nav button[aria-current=page]{color:#9ee7f4;border-bottom:2px solid #73d6e8}
+.lending-office .office-header{gap:16px}
+.lending-office .lending-actions{display:flex;margin:0 0 0 auto;gap:12px}
+.lending-actions button[aria-pressed=true]{color:#9ee7f4}
+.lending-kpis{display:flex;gap:15px;white-space:nowrap}
+.lending-kpis span{display:grid;font-size:10px;color:#a7bed1}
+.lending-kpis b{font-size:15px;color:#eef8ff}
+.lending-office .lending-health{margin-left:0;white-space:nowrap}
+@media(max-width:850px){.lending-office .office-header{height:auto;min-height:75px;flex-wrap:wrap;gap:8px;padding:6px 12px}.lending-office .lending-actions{order:5;width:100%;justify-content:flex-end}.lending-health{margin-left:auto}.lending-kpis{gap:8px}.lending-office .lending-actions button{min-height:30px}}
+.lending-office .scene{z-index:0}
+.lending-office .speech-bubble p{max-height:150px;overflow:auto;overscroll-behavior:contain}
+.lending-health{margin-left:auto;color:#87d5ba;font-size:12px}
+.lending-handoffs .task-row p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.lending-office .lending-handoffs{top:112px;right:16px;bottom:auto;width:min(420px,calc(100% - 32px));max-height:min(490px,52vh)}
+.lending-handoffs .panel-head{padding:12px 16px}
+.lending-handoffs .panel-head h2{font-size:16px;margin:0;padding-right:25px}
+.lending-handoffs .panel-scroll{padding:0 16px 12px;min-height:0}
+.lending-handoffs .task-row{padding:12px 0}
+.lending-handoffs .task-row:last-child{border-bottom:0}
+.lending-message-meta{display:flex;justify-content:space-between;gap:8px}
+.lending-message-meta time{font-size:10px;color:#92a7b9}
+.lending-inspector{left:1rem;right:auto}
+.lending-progress{background:#132537;border:1px solid #2c465b;border-radius:8px;padding:1rem}
+.lending-progress h2{margin-top:0}
+.lending-progress-overview{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;color:#9fbbd0}
+.lending-progress-value{display:flex;align-items:center;gap:.5rem}
+.lending-progress-value progress{width:100px;height:7px;accent-color:#70ceb8}
+.lending-progress-value strong{min-width:3em;text-align:right;color:#7cddbd}
+.lending-office .pm-messenger{z-index:4;bottom:22px;width:min(430px,calc(100% - 24px));max-width:none;padding:0;background:#142234;border-color:#334c64;overflow:hidden}
+.pm-messenger-header{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:#1c2d42;text-align:left}
+.pm-messenger-header:focus-visible{outline-offset:-4px}
+.pm-messenger-name{flex:1;line-height:1.35}
+.pm-messenger-name strong,.pm-messenger-name small{display:block}
+.pm-messenger-name small{color:#a7bed1;font-size:11px}
+.pm-avatar{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;background:#154b66;color:#c0f2ff;font-size:12px;font-weight:700}
+.pm-avatar-small{width:25px;height:25px;font-size:9px}
+.pm-history-wrap{position:relative}
+.pm-history{height:clamp(132px,25vh,225px);overflow-y:auto;overscroll-behavior:contain;padding:12px;scrollbar-width:thin;scrollbar-color:#49637d transparent}
+.pm-chat-empty{text-align:center;color:#a7bed1;margin:2rem .5rem}
+.pm-exchange{display:grid;gap:7px;margin-bottom:10px}
+.pm-message-row{display:flex;align-items:end;gap:7px}
+.pm-outgoing{justify-content:flex-end}
+.pm-bubble{margin:0;max-width:86%;padding:8px 12px;border-radius:15px 15px 15px 4px;background:#293b50;color:#eef5ff;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.pm-outgoing .pm-bubble{background:#2263cb;border-radius:15px 15px 4px 15px;color:white}
+.pm-pending{color:#c0d1df;font-style:italic}
+.pm-jump{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);background:#24496c;border:1px solid #4a6d91;border-radius:16px;padding:4px 10px;white-space:nowrap;font-size:11px}
+.pm-messenger .pm-compose{gap:8px;margin:0;padding:8px 12px;border-top:1px solid #ffffff12}
+.pm-messenger .pm-compose input{padding:8px 12px;background:#23364a;border-radius:20px;min-width:0}
+.pm-messenger .pm-compose button{display:grid;place-items:center;flex:none;background:#2263cb;color:white;border-radius:50%}
+.pm-messenger .pm-compose button:disabled{opacity:.45;cursor:default}
+.pm-messenger .dock-bottom{margin:0;padding:6px 12px 9px}
+.pm-messenger .chat-error{margin:0 12px 8px}
+.pm-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.lending-office .office-header{height:54px;margin:8px 10px 0;padding:0 12px;border:1px solid #263442;border-radius:10px;background:#121a24;box-shadow:0 6px 25px #0005}
+.lending-office .brand{gap:9px;font-size:12px;letter-spacing:.2px;white-space:nowrap}
+.lending-office .brand small{font-size:8px;letter-spacing:1.2px}
+.lending-office .brand-icon{background:#233545;color:#a4dcee;border-radius:5px;padding:3px 5px}
+.lending-office .lending-kpis{border-left:1px solid #2b3744;padding-left:12px;gap:12px}
+.lending-kpis span{font-size:9px;letter-spacing:.35px}
+.lending-kpis b{font-size:12px}
+.lending-office .lending-actions{height:auto;gap:5px}
+.lending-office .lending-actions button{padding:5px 8px;border:1px solid #2d3947;border-radius:5px;background:#1a2430;color:#afbed0;font-size:11px}
+.lending-office .lending-actions button[aria-current=page],.lending-office .lending-actions button[aria-pressed=true]{border-color:#6babc4;background:#a8def1;color:#132839}
+.lending-office .lending-health,.lending-office .office-header>a:last-child{font-size:10px}
+.lending-office .lending-side-panel,.lending-office .lending-handoffs{top:76px;right:12px;bottom:18px;width:min(360px,calc(100% - 24px));max-height:none;background:#141c27;border-color:#2a3544}
+.lending-office .lending-handoffs{bottom:auto;max-height:min(490px,62vh)}
+.lending-office .lending-inspector{top:76px;bottom:auto;width:min(300px,calc(100% - 24px));max-height:65vh;background:#141c27;border-color:#2a3544;padding:15px}
+.lending-panel-header{padding:12px 13px 10px;border-bottom:1px solid #293545}
+.lending-panel-header h2{font-size:15px;margin:0 0 8px}
+.lending-panel-header select{width:100%;font-size:11px;background:#1c2735;color:#cdd9e7;border:1px solid #344254;border-radius:5px;padding:6px}
+.lending-panel-body{padding:10px 12px 14px;min-height:0}
+.lending-task-filters{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+.lending-task-filters button{padding:3px 5px;color:#a8b6c8;font-size:10px;border-radius:5px}
+.lending-task-filters button[aria-pressed=true]{background:#2a3a4d;color:#ecf8ff}
+.lending-task-filters small{color:#93b1c5}
+.lending-task-card{display:grid;gap:6px;text-align:left;width:100%;padding:10px;margin:0 0 7px;border:1px solid #293648;border-radius:7px;background:#1a2532;color:#e0eaf4;font-size:12px}
+button.lending-task-card:hover,.lending-task-card.is-selected{border-color:#83b7d2;background:#223246}
+.lending-task-card small,.lending-card-meta small{color:#a3b4c7;font-size:10px}
+.lending-task-card strong{line-height:1.45}
+.lending-card-meta{display:flex;align-items:center;gap:7px}
+.lending-status{padding:1px 5px;border-radius:4px;background:#2a394c;color:#afc5dc;font-size:9px}
+.lending-status.active{background:#254775;color:#bfe2ff}
+.lending-status.done{background:#204336;color:#a9e8cf}
+.lending-progress-value progress{appearance:none;flex:1;width:100%;min-width:40px;height:5px;background:#344154;border:0;border-radius:6px;overflow:hidden}
+.lending-progress-value progress::-webkit-progress-bar{background:#344154}
+.lending-progress-value progress::-webkit-progress-value{background:#71dbab;border-radius:6px;transition:width .3s}
+.lending-progress-value progress::-moz-progress-bar{background:#71dbab;border-radius:6px}
+.lending-progress-value strong{font-size:10px}
+.lending-back{padding:0;margin-bottom:5px;color:#a6b9cc;font-size:11px}
+.lending-workflow-summary{padding:8px 1px 4px}
+.lending-workflow-summary h3{margin:4px 0 9px;color:#e3edf7;font-size:14px}
+.lending-section-label{margin:12px 0 6px;color:#9fb2ca;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.lending-steps{list-style:none;margin:0;padding:0}
+.lending-steps li{display:grid;grid-template-columns:18px 1fr auto;gap:4px;padding:5px 7px;border-radius:5px;color:#aebcd0;font-size:11px}
+.lending-steps .is-running{background:#233a57;color:#accfff}
+.lending-steps .is-delivered>span{color:#71dbab}
+.lending-steps li small{font-size:10px}
+@media(max-width:850px){.lending-office .office-header{height:auto;padding:5px 8px}.lending-office .lending-side-panel,.lending-office .lending-handoffs,.lending-office .lending-inspector{top:98px}.lending-office .lending-kpis{padding-left:6px;gap:8px}}
+@media(max-width:530px){.lending-office .lending-kpis{display:none}.lending-office .lending-side-panel{bottom:14px}}
+.lending-office{font-family:Inter,'Segoe UI',sans-serif;font-weight:400;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+.lending-office button,.lending-office input,.lending-office select,.lending-office textarea{font-family:inherit}
+.lending-office .brand{font-size:14px;font-weight:600;letter-spacing:-.02em}
+.lending-office .lending-actions button{font-size:13px;font-weight:500;letter-spacing:-.01em}
+.lending-office h2,.lending-office h3,.lending-office strong,.lending-office b{font-weight:600}
+.lending-office .office-header,.lending-office .lending-side-panel,.lending-office .lending-handoffs,.lending-office .lending-inspector{background:#1b1922;border-color:#3e3649}
+.lending-office .brand-icon{background:#3a2d4b;color:#e5d2ff}
+.lending-office .lending-actions button{background:#262330;border-color:#423a4c;color:#d3cbdc;transition:background .18s,border-color .18s,color .18s}
+.lending-office .lending-actions button[aria-current=page],.lending-office .lending-actions button[aria-pressed=true]{background:#d3bbff;border-color:#d3bbff;color:#241a34}
+.lending-office .lending-panel-header{border-color:#3d3549}
+.lending-office .lending-panel-header select{background:#282432;border-color:#50445d}
+.lending-office .lending-task-filters button[aria-pressed=true]{background:#45355c;color:#f1e8ff}
+.lending-task-card{--task-color:#deac6d;--task-bg:#2a2426;background:var(--task-bg);border-color:color-mix(in srgb,var(--task-color) 28%,#241f2b);border-inline-start:3px solid var(--task-color);transition:background .18s,border-color .18s}
+.lending-task-card.tone-active{--task-color:#bd9aff;--task-bg:#292239}
+.lending-task-card.tone-review{--task-color:#e5a0c8;--task-bg:#302431}
+.lending-task-card.tone-blocked{--task-color:#ff969b;--task-bg:#352327}
+.lending-task-card.tone-done{--task-color:#90dbb3;--task-bg:#202c28}
+.lending-office button.lending-task-card:hover,.lending-office .lending-task-card.is-selected{background:color-mix(in srgb,var(--task-color) 13%,var(--task-bg));border-color:var(--task-color)}
+.lending-task-card .lending-status{background:color-mix(in srgb,var(--task-color) 19%,#211c29);color:var(--task-color)}
+.lending-office .lending-steps .is-running{background:#3b2d50;color:#dfcbff}
+.lending-office .agent-tag.working{border-color:#ccadff;box-shadow:0 0 24px #c39cff44}
+.lending-office .pm-messenger{background:#201c29;border-color:#4a3e56}
+.lending-office .pm-messenger-header{background:#2d2538}
+.lending-office .pm-avatar{background:#49355d;color:#ede1ff}
+.lending-office .pm-bubble{background:#393047;color:#eee9f5}
+.lending-office .pm-outgoing .pm-bubble,.lending-office .pm-compose button{background:#724bb2;color:#fff}
+.lending-office .pm-compose input{background:#30283c;color:#f4edf9}
+.lending-office .pm-jump{background:#48365d;border-color:#6f568d}
+.lending-office .lending-preview{top:76px;right:12px;bottom:18px;width:min(880px,59vw);background:#1b1922;border-color:#493e55;overflow:hidden}
+.lending-preview-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;border-bottom:1px solid #3d3549}
+.lending-preview-header h2{margin:0;font-size:14px}
+.lending-preview-header small{color:#b9abc9;font-size:10px}
+.lending-preview-actions{display:flex;align-items:center;gap:9px;font-size:11px;white-space:nowrap}
+.lending-preview-actions button{padding:3px 6px;border-radius:5px;background:#30283d}
+.lending-preview iframe{width:100%;flex:1;min-height:0;border:0;background:#fff}
+@media(min-width:851px){
+  .lending-office:has(.lending-preview) .scene{right:min(892px,calc(59vw + 12px))}
+  .lending-office:has(.lending-preview) .pm-messenger{left:12px;transform:none;width:min(360px,38vw)}
+}
+@media(max-width:850px){.lending-office .lending-preview{top:98px;width:calc(100% - 24px)}}
+.lending-project-select {
+  max-width: 210px;
+  padding: 7px 10px;
+  color: #e6e1f0;
+  background: #282235;
+  border: 1px solid #51435f;
+  border-radius: 8px;
+  font: inherit;
+}
+.lending-agent-manager{width:min(780px,calc(100vw - 32px));max-width:none;right:16px;top:88px;bottom:20px;z-index:35;background:#211e2b}
+.lending-agent-layout{display:grid;grid-template-columns:210px 1fr;min-height:0;height:calc(100% - 65px)}
+.lending-agent-list,.lending-agent-form{overflow:auto;padding:18px}
+.lending-agent-list{border-right:1px solid #ffffff16}
+.lending-agent-form h3{margin:0 0 12px}.lending-agent-form p{font-size:12px;color:#b8afc8;line-height:1.6}
+.lending-agent-form label,.lending-agent-question label{display:grid;gap:7px;font-size:12px;color:#d5cce4;margin-bottom:14px}
+.lending-agent-form input,.lending-agent-form select,.lending-agent-form textarea,.lending-agent-question textarea{box-sizing:border-box;width:100%;background:#15131d;color:#f4efff;border:1px solid #514360;border-radius:8px;padding:10px;font:inherit}
+.lending-agent-form textarea{resize:vertical;min-height:80px}
+.lending-agent-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lending-agent-item{display:flex;width:100%;text-align:left;align-items:flex-start;gap:9px;padding:12px 8px;border:1px solid transparent;border-radius:10px;background:transparent;color:#ece4f7;margin-top:7px}
+.lending-agent-item.selected{background:#8660b327;border-color:#a78bfa}
+.lending-agent-item small,.lending-agent-item em{display:block;font-size:11px;color:#b8afc8;line-height:1.5;margin-top:4px;font-style:normal}
+.lending-agent-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.lending-agent-archive{display:flex;gap:7px;font-size:11px;margin:15px 0;color:#b8afc8}
+.lending-agent-tools{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.lending-agent-tools button,.lending-agent-question button{padding:8px 12px;border:1px solid #69547e;background:#32263f;color:#eee4fc;border-radius:7px;cursor:pointer}
+.lending-agent-color input{width:65px;height:36px;padding:3px}
+.lending-agent-assignment{border-top:1px solid #ffffff20;margin-top:22px;padding-top:20px}
+.lending-agent-success{color:#8ae5bd!important;white-space:pre-wrap}
+.lending-agent-question{margin-top:22px}
+.lending-agent-note{border-top:1px solid #ffffff16;padding-top:14px}
+.lending-agent-form fieldset{border:0;padding:0;margin:0;min-width:0}
+.lending-agent-form fieldset:disabled{opacity:.7}
+.lending-agent-connection{border:1px solid #665478;border-radius:9px;padding:13px;margin-bottom:16px;background:#a78bfa0c}
+.lending-agent-connection h3{font-size:13px;margin-bottom:5px}
+.lending-agent-connection p{margin:5px 0;overflow-wrap:anywhere}
+.lending-agent-search{display:grid;gap:7px;font-size:11px;color:#b8afc8;margin:14px 0}
+.lending-agent-search input,.lending-agent-search select{width:100%;box-sizing:border-box;border:1px solid #514360;border-radius:7px;padding:8px;background:#15131d;color:#f4efff;font:inherit}
+.lending-agent-danger{border-color:#d86f86!important;color:#ffb7c8!important;background:#542339!important}
+.lending-agent-confirm{border:1px solid #d86f86;border-radius:10px;padding:16px;margin:18px 0;background:#351d2a}
+.lending-agent-history{border-top:1px solid #ffffff20;margin-top:22px;padding-top:18px}
+.lending-agent-history article{padding:10px 0;border-bottom:1px solid #ffffff12;font-size:12px;color:#d5cce4}
+.lending-agent-history small{display:block;color:#aaa0ba;margin-top:5px}
+.lending-agent-pending{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;font-size:12px;border-bottom:1px solid #ffffff16}
+.lending-agent-pending button{padding:7px;border:1px solid #69547e;border-radius:6px;background:#32263f;color:#eee4fc;white-space:nowrap}
+.lending-agent-manager button:disabled{opacity:.45;cursor:not-allowed}
+.agent-setup-tabs{display:flex;gap:4px;border:1px solid #67547d;border-radius:9px;padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.agent-setup-tabs button{flex:1;background:transparent;border:0;border-radius:6px;color:#c5b9d7;padding:10px 8px;font:inherit;cursor:pointer}
+.agent-setup-tabs button[aria-selected=true]{background:#a78bfa2b;color:#fff}
+.token-dashboard{position:absolute;inset:88px 24px 20px;z-index:6;background:#17151e;border:1px solid #443b52;border-radius:16px;padding:28px;overflow:auto;color:#eeeaf5;box-shadow:0 20px 70px #0007}.token-dashboard button,.token-dashboard input,.token-dashboard select{font:inherit;color:inherit;border:1px solid #51465f;background:#24202e;border-radius:7px;padding:9px 12px}.token-dashboard button{cursor:pointer}.token-dashboard button:hover{background:#383045}.token-dashboard-head,.token-filters,.token-table-head,.token-chart>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:16px}.token-dashboard-head h1{font-size:28px;letter-spacing:-.7px;margin:5px 0 8px}.token-dashboard p{line-height:1.6}.token-dashboard-head p{margin:0;color:#ada6ba;font-size:13px}.token-eyebrow{font-size:10px;letter-spacing:2px;color:#b69ee6;font-weight:700}.token-dashboard-head>div:last-child{display:flex;gap:8px}.token-filters{margin:24px 0;justify-content:flex-start;flex-wrap:wrap}.token-filters label{display:grid;gap:6px;font-size:11px;color:#bcb4c9}.token-filters small{margin-left:auto;color:#9890a6;font-size:11px}.token-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.token-cards article{display:grid;gap:12px;background:#201c29;border:1px solid #3c3448;border-radius:12px;padding:20px}.token-cards article>span{color:#bbb2cc;font-size:12px}.token-cards article>strong{font-size:30px;letter-spacing:-1px;font-variant-numeric:tabular-nums}.token-cards article:first-child>strong{color:#c9b4ff}.token-cards small{color:#958ba6;font-size:11px}.token-alert{background:#483a202e;border:1px solid #7f643d;border-radius:8px;padding:12px 16px;color:#eac889;font-size:12px}.token-chart{border:1px solid #3c3448;border-radius:12px;padding:20px;margin:20px 0;background:#1d1925}.token-dashboard h2{font-size:15px;margin:0}.token-dashboard small{color:#a59bb5}.token-bars{height:120px;display:flex;align-items:end;gap:6px;margin-top:24px;padding-bottom:20px}.token-bars>div{flex:1;height:100%;position:relative;display:flex;align-items:end}.token-bars i{display:block;width:100%;background:linear-gradient(#c5a8fa,#7653ae);border-radius:4px 4px 0 0;min-width:3px}.token-bars span{position:absolute;bottom:-20px;font-size:9px;color:#9b91aa;width:100%;text-align:center}.token-table-head{margin:24px 0 14px}.token-table-head small{font-size:11px}.token-table-wrap{overflow:auto;border:1px solid #3c3448;border-radius:12px}.token-table{border-collapse:collapse;width:100%;min-width:800px;font-size:12px}.token-table th{color:#ada3bd;text-align:left;font-size:11px;font-weight:500;background:#221d2b;padding:14px 18px}.token-table td{padding:16px 18px;border-top:1px solid #342c40;max-width:280px;overflow-wrap:anywhere}.token-table tr.selected td{background:#a78bfa14}.token-table td small{display:block;margin-top:5px;font-size:10px}.token-table progress{display:block;width:130px;height:5px;accent-color:#b595ed;margin-top:8px}.token-table .token-agent-link{display:flex;align-items:center;gap:9px;padding:0;border:0;background:none;font-weight:600}.token-agent-link i{width:9px;height:9px;border-radius:50%;flex:none}.token-agent-link span{color:#88799e;margin-left:8px}.token-badge{display:inline-block;white-space:nowrap;padding:5px 8px;border-radius:6px;background:#8fe1b510;color:#a6d7bb;font-size:10px}.token-badge.warning{color:#dfc281;background:#dfc28114}.token-badge.danger{color:#ff9aab;background:#ff9aab14}.token-detail{border:1px solid #655279;border-radius:12px;margin-top:24px;padding:20px;background:#211b2c}.token-detail .token-table-head{margin-top:0}.token-footnote{color:#9f94af;font-size:11px;max-width:1050px;margin:20px 0 0}@media(max-width:850px){.token-dashboard{inset:130px 10px 10px;padding:18px}.token-cards{grid-template-columns:repeat(2,1fr)}.token-dashboard-head{align-items:start}.token-dashboard-head h1{font-size:22px}.token-filters small{margin-left:0}.token-bars{gap:3px}.token-table-head{align-items:start;flex-direction:column}.token-cards article{padding:14px}.token-cards article>strong{font-size:24px}}
+.agent-token-panel{display:grid;gap:12px}.agent-token-panel h3,.agent-token-panel h4,.agent-token-panel p{margin:0}.agent-token-panel small{display:block;color:#b9b0c7;line-height:1.6}.agent-token-total{font-size:24px;color:#a7f3d0}.agent-token-panel progress{width:100%;height:12px;accent-color:#7cdbb3}.agent-token-panel table{width:100%;border-collapse:collapse;font-size:13px}.agent-token-panel td,.agent-token-panel th{text-align:left;padding:10px 6px;border-bottom:1px solid #51415f;overflow-wrap:anywhere}.agent-token-run{padding:12px;border:1px solid #51415f;border-radius:8px;display:grid;gap:5px}.agent-token-run strong{overflow-wrap:anywhere}
+.agent-setup-items label>div{display:flex;gap:8px}.agent-setup-items button,.agent-setup-skill button{border:1px solid #69547e;border-radius:6px;background:#32263f;color:#eee4fc;padding:7px 10px;cursor:pointer}
+.agent-setup-items ul{padding:0;list-style:none;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:6px}
+.agent-setup-items li{font-size:12px;background:#a78bfa20;border-radius:7px;padding:4px 5px 4px 9px;overflow-wrap:anywhere}
+.agent-setup-items li button{border:0;background:transparent;padding:2px 7px}
+.agent-setup-checks{display:grid;gap:6px;margin-bottom:20px;max-height:280px;overflow:auto}
+.agent-setup-checks label,.agent-setup-toggle{display:flex!important;align-items:flex-start;gap:9px!important;margin:0!important;padding:9px;border:1px solid #ffffff16;border-radius:7px}
+.agent-setup-checks input,.agent-setup-toggle input{width:auto!important;margin-top:2px}
+.agent-setup-checks small{display:block;font-size:11px;color:#a99cbb;margin-top:5px}
+.agent-setup-toggle{margin-bottom:16px!important}.agent-setup-skill{padding:12px;border:1px solid #ffffff20;border-radius:8px;margin-bottom:20px}
+.agent-setup-skill summary{cursor:pointer;margin-bottom:12px;color:#d7c4ff;font-size:12px}
+@media(max-width:700px){.lending-agent-manager{left:8px;right:8px;width:auto;top:120px}.lending-agent-layout{grid-template-columns:140px 1fr}.lending-agent-list,.lending-agent-form{padding:10px}.lending-agent-fields{grid-template-columns:1fr}}
+@media(min-width:701px) and (max-width:850px){.lending-agent-manager{top:110px}}
+
+.agent-provider-status{padding:14px;border:1px solid #7f6d9f55;background:#18162488;border-radius:10px;margin:14px 0}
+.agent-provider-status strong{font-size:13px;color:#c9dfce}
+.agent-provider-status small{display:block;margin-top:9px;color:#a8a0b7;font-size:11px}
+.agent-provider-help{margin:12px 0;color:#beb6cb;font-size:12px}
+.agent-provider-help code{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;border-radius:8px;background:#14111d;color:#e4d5fc}
+
+.agent-action-feedback{position:sticky;top:0;z-index:8;border:1px solid #a78bfa66;border-radius:10px;background:#211d2e;padding:12px 14px;box-shadow:0 5px 18px #0004;margin-bottom:14px}
+.agent-action-feedback p{margin:0!important;font-size:13px;line-height:1.5}
+
+.agent-model-catalog{margin:12px 0;padding:12px;border:1px solid #69748955;border-radius:10px;background:#14152144}
+.agent-model-actions{display:flex;gap:8px;flex-wrap:wrap}
+.agent-model-actions button{font-size:12px}
+.agent-model-catalog small{display:block;color:#aca4b9;font-size:11px;line-height:1.6;margin-top:10px}
+
+.token-detail-dialog{position:fixed;inset:0;margin:auto;width:min(660px,calc(100vw - 32px));max-height:calc(100dvh - 48px);box-sizing:border-box;overflow:auto;border:1px solid #77618f;border-radius:16px;padding:24px;background:#211b2c;color:#eeeaf5;box-shadow:0 24px 90px #0009;font-family:inherit}.token-detail-dialog::backdrop{background:#080610b8;backdrop-filter:blur(4px)}.token-detail-dialog .token-table-head{margin-top:0}.token-detail-dialog button,.token-detail-dialog input{font:inherit;background:#30263d;color:#eeeaf5;border:1px solid #665078;border-radius:7px;padding:10px 12px}.token-detail-dialog button{cursor:pointer}.token-detail-dialog label{display:grid;gap:8px}.token-detail-dialog input{width:100%;box-sizing:border-box}.token-detail-dialog table{width:100%;font-size:12px}.token-detail-dialog td,.token-detail-dialog th{text-align:left;padding:8px;border-bottom:1px solid #51415f}.token-detail-dialog .token-table-head h2{font-size:17px;margin:0}.token-table .token-limit-edit{display:block;margin-top:8px;font-size:11px;color:#d7c3ff;padding:5px 9px}.token-detail-dialog :focus-visible{outline:2px solid #c9b4ff;outline-offset:3px}
+

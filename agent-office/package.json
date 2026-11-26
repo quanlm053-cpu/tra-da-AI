@@ -1,0 +1,75 @@
+{
+  "name": "agent-office",
+  "private": false,
+  "version": "0.4.0",
+  "description": "A live 3D mission control for coding agents",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quanlm053-cpu/tra-da-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quanlm053-cpu/tra-da-AI/issues"
+  },
+  "homepage": "https://github.com/quanlm053-cpu/tra-da-AI#readme",
+  "type": "module",
+  "bin": {
+    "agent-office": "./bin/agent-office.mjs"
+  },
+  "files": [
+    "bin/",
+    "server/",
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "docs/",
+    "vscode-extension/README.md"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "prepack": "npm run build",
+    "dev": "vite --host 127.0.0.1",
+    "dev:all": "node scripts/dev.mjs",
+    "server": "node server/index.mjs",
+    "start": "node server/index.mjs",
+    "build": "tsc -b && vite build",
+    "build:demo": "tsc -b && vite build --mode public-demo",
+    "lint": "oxlint",
+    "preview": "vite preview --host 127.0.0.1",
+    "check:server": "node --check server/index.mjs && node --check server/providers.mjs && node --check server/task-output.mjs && node --check server/processes.mjs && node --check server/agents.mjs && node --check server/agent-prompt.mjs && node --check bin/agent-office.mjs && node --check vscode-extension/extension.cjs && node --check vscode-extension/runtime.cjs",
+    "test:behavior": "node --test scripts/test-agent-behavior.mjs scripts/test-providers.mjs scripts/test-cli.mjs scripts/test-vscode.mjs scripts/test-office-layout.mjs scripts/test-roster-api.mjs scripts/test-agent-prompt.mjs scripts/test-task-dispatch.mjs",
+    "package:vscode": "node scripts/prepare-vscode-package.mjs && cd vscode-extension && npm exec --yes --package=@vscode/vsce@4.0.0 -- vsce package --no-dependencies --out ../work/agent-office-vscode.vsix",
+    "smoke:browser": "node scripts/smoke-browser.mjs",
+    "smoke:roster": "node scripts/smoke-roster.mjs",
+    "smoke:avatars": "npm run build && node scripts/smoke-avatar-visual.mjs",
+    "smoke:demo": "npm run build:demo && node scripts/smoke-public-demo.mjs",
+    "smoke:live": "node scripts/smoke-live.mjs",
+    "smoke:live-ui": "node scripts/smoke-live-ui.mjs",
+    "check:public": "node scripts/check-public.mjs",
+    "verify:public": "npm run check:public && npm run lint && npm run test:behavior && npm run test:ui && npm run build && npm run check:server",
+    "smoke:floor": "npm run build && node scripts/smoke-corporate-floor.mjs",
+    "test:ui": "node scripts/smoke-browser.mjs --unit"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "lucide-react": "^1.55.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.186.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "pngjs": "^7.0.0",
+    "puppeteer-core": "^25.13.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

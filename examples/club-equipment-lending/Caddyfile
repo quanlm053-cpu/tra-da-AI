@@ -1,0 +1,13 @@
+https://localhost:8443 {
+    tls internal
+    @api path /auth/* /equipment /equipment/*/availability /loan-requests /loan-requests/*
+    handle @api {
+        reverse_proxy 127.0.0.1:3000 {
+            header_up X-Lending-Client-IP {http.request.remote.host}
+        }
+    }
+    handle {
+        root * ./dist
+        file_server
+    }
+}

@@ -1,0 +1,35 @@
+name: trada-ai
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: redmine
+      POSTGRES_DB: redmine
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run setup.ps1 first}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U redmine]
+      interval: 10s
+      retries: 12
+  redmine:
+    image: redmine:6.1
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:3000:3000
+    environment:
+      REDMINE_DB_POSTGRES: db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY_BASE: ${REDMINE_SECRET_KEY_BASE}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - redmine_files:/usr/src/redmine/files
+      - ./bootstrap.rb:/opt/trada/bootstrap.rb:ro
+volumes:
+  db_data:
+  redmine_files:

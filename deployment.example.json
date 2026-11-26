@@ -1,0 +1,13 @@
+{
+  "identifier": "club-equipment-lending",
+  "name": "Mượn thiết bị",
+  "redmine_project_id": 2,
+  "repository": "YOUR_ACCOUNT/YOUR_APP",
+  "repo_path": "workspace/app",
+  "runtime_path": "agent-service/runtime/lending",
+  "test_database": "ClubEquipmentLending_Test",
+  "preview_database": "ClubEquipmentLending_Preview",
+  "preview_url": "http://localhost:3102/",
+  "platform": "Node.js, npm, Microsoft SQL Server",
+  "discord": {"guild_id": 0, "work_channel_id": 0, "tea_channel_id": 0}
+}

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duyệt yêu cầu mượn · Club Equipment Lending</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f5f3; color: #18342e; font: 1rem/1.55 "DM Sans", system-ui, sans-serif; }
+  header { background: #143d33; color: white; padding: 1rem max(5vw, 1rem); }
+  main { width: min(70rem, 92vw); margin: 2.5rem auto; }
+  h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; letter-spacing: -.045em; margin: 0; }
+  h2 { margin: 0 0 .5rem; line-height: 1.2; }
+  p { margin: .5rem 0 1rem; }
+  .muted { color: #486158; }
+  .toolbar, .card, .state { background: white; padding: 1.25rem; border: 1px solid #cfdad4; border-radius: .85rem; }
+  .toolbar, .actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+  .toolbar { margin: 1.5rem 0; }
+  #queue { display: grid; gap: .75rem; }
+  .card { display: grid; grid-template-columns: 1fr auto; gap: .65rem 1.25rem; align-items: center; }
+  .card p { margin: .2rem 0; }
+  .card h3 { margin: 0; font-size: 1.15rem; }
+  .warning { background: #fff0c9; color: #61440b; border-radius: .45rem; padding: .65rem .85rem; }
+  .card .warning { grid-column: 1 / -1; }
+  #feedback:empty { display: none; }
+  #feedback { margin: .75rem 0; }
+  button, select { font: inherit; border: 1px solid #718a80; border-radius: .5rem; padding: .45rem .8rem; background: white; color: inherit; }
+  button { cursor: pointer; font-weight: 650; }
+  button:disabled { opacity: .58; cursor: wait; }
+  .primary { background: #17614e; color: white; border-color: #17614e; }
+  .reject { color: #872d2d; }
+  :focus-visible { outline: 3px solid #1c6fa0; outline-offset: 3px; }
+  dialog { width: min(30rem, 92vw); padding: 1.5rem; border: 1px solid #cfdad4; border-radius: .85rem; color: inherit; }
+  dialog::backdrop { background: #142f2bcc; }
+  @media (max-width: 46rem) { .card { grid-template-columns: 1fr; } }
+</style>
+<header><strong>Club Equipment Lending</strong> · Quản lý</header>
+<main>
+  <h1>Duyệt yêu cầu mượn</h1>
+  <p class="muted">Giờ CLB · Asia/Bangkok (UTC+7)</p>
+  <div class="toolbar">
+    <label for="scenario">Kịch bản mô phỏng</label>
+    <select id="scenario">
+      <option value="normal">Yêu cầu mẫu</option>
+      <option value="empty">Hàng đợi rỗng</option>
+      <option value="readError">Lỗi tải lần đầu</option>
+      <option value="stale">Yêu cầu đã được xử lý ở phiên khác</option>
+      <option value="lost">Mất phản hồi sau khi lưu</option>
+    </select>
+    <button id="load">Nạp kịch bản</button>
+  </div>
+  <h2 id="queueTitle" tabindex="-1">Đang chờ</h2>
+  <p id="feedback" role="status"></p>
+  <section id="queue" aria-labelledby="queueTitle"></section>
+</main>
+<dialog id="dialog" aria-labelledby="dialogTitle">
+  <h2 id="dialogTitle"></h2>
+  <div id="dialogBody"></div>
+  <form method="dialog" class="actions">
+    <button value="cancel" autofocus>Đóng</button>
+    <button id="confirm" value="confirm" hidden>Xác nhận</button>
+  </form>
+</dialog>
+<script>
+  const byId = id => document.getElementById(id);
+  const queue = byId('queue');
+  const dialog = byId('dialog');
+  const feedback = byId('feedback');
+  const confirm = byId('confirm');
+  const wait = () => new Promise(resolve => setTimeout(resolve, 550));
+  const rows = [
+    [101, 'CAM-01', 'Máy ảnh', 'tv_mau_01', 540, 600, '08:00'],
+    [102, 'CAM-01', 'Máy ảnh', 'tv_mau_02', 570, 630, '08:05'],
+    [103, 'CAM-01', 'Máy ảnh', 'tv_mau_03', 600, 660, '08:10'],
+    [104, 'CAM-02', 'Máy ảnh', 'tv_mau_04', 540, 600, '08:15']
+  ];
+  const statusLabels = { PENDING: 'Đang chờ', APPROVED: 'Đã duyệt', REJECTED: 'Đã từ chối' };
+  let records = [];
+  let scenario;
+  let busy = false;
+  let selection;
+  const warnings = new Map();
+  const time = minutes => String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+  const period = r => time(r.start) + '–' + time(r.end) + ' · 20/11/2026';
+  const name = r => 'YC-' + r.id;
+
+  function showFeedback(message, warning = false) {
+    feedback.textContent = message;
+    feedback.className = warning ? 'warning' : '';
+  }
+
+  function setBusy(value) {
+    busy = value;
+    byId('load').disabled = value;
+    queue.setAttribute('aria-busy', String(value));
+    for (const button of queue.querySelectorAll('button')) button.disabled = value;
+  }
+
+  function render() {
+    const pending = records.filter(r => r.status === 'PENDING');
+    byId('queueTitle').textContent = 'Đang chờ (' + pending.length + ')';
+    queue.innerHTML = pending.map(r => `
+      <article class="card">
+        <div>
+          <h3>${r.equipment} · ${r.asset}</h3>
+          <p>${period(r)}</p>
+          <p class="muted">${name(r)} · ${r.borrower} · Gửi lúc ${r.created} ngày 20/11/2026</p>
+        </div>
+        <div class="actions">
+          <button data-id="${r.id}" data-action="detail" aria-label="Chi tiết ${name(r)}">Chi tiết</button>
+          <button data-id="${r.id}" data-action="reject" class="reject" aria-label="Từ chối ${name(r)}">Từ chối</button>
+          <button data-id="${r.id}" data-action="approve" class="primary" aria-label="Duyệt ${name(r)}">Duyệt</button>
+        </div>
+        ${warnings.has(r.id) ? '<p class="warning">' + warnings.get(r.id) + '</p>' : ''}
+      </article>`).join('') || '<div class="state">Chưa có yêu cầu đang chờ.</div>';
+  }
+
+  async function load(mode, retry = false) {
+    scenario = mode;
+    warnings.clear();
+    showFeedback('Đang tải hàng đợi…');
+    byId('queueTitle').textContent = 'Đang chờ';
+    queue.replaceChildren();
+    setBusy(true);
+    await wait();
+    records = mode === 'empty' ? [] : rows.map(([id, asset, equipment, borrower, start, end, created]) =>
+      ({ id, asset, equipment, borrower, start, end, created, status: 'PENDING' }));
+    if (mode === 'readError' && !retry) {
+      showFeedback('Không tải được hàng đợi. Vui lòng thử lại.', true);
+      queue.innerHTML = '<div class="state"><button data-action="retry">Thử lại</button></div>';
+    } else {
+      showFeedback('');
+      render();
+    }
+    setBusy(false);
+  }
+
+  function open(r, action) {
+    selection = { r, action };
+    const title = action === 'approve' ? 'Duyệt' : action === 'reject' ? 'Từ chối' : 'Chi tiết';
+    byId('dialogTitle').textContent = title + ' ' + name(r);
+    byId('dialogBody').innerHTML = `<p><strong>${r.equipment} · ${r.asset}</strong><br>${period(r)}<br>
+      Người gửi · ${r.borrower}<br>Thời điểm gửi · ${r.created} ngày 20/11/2026<br>${statusLabels[r.status]}</p>`;
+    confirm.hidden = action === 'detail';
+    confirm.className = action === 'reject' ? 'reject' : 'primary';
+    confirm.textContent = title;
+    dialog.returnValue = '';
+    dialog.showModal();
+  }
+
+  async function decide(r, action) {
+    setBusy(true);
+    showFeedback('Đang xử lý ' + name(r) + '…');
+    await wait();
+    if (scenario === 'stale') {
+      r.status = 'REJECTED';
+      scenario = 'normal';
+      showFeedback('Yêu cầu đã đổi trạng thái. Đang tải lại chi tiết và hàng đợi…', true);
+      await wait();
+      showFeedback(name(r) + ' · Đã từ chối ở phiên khác.', true);
+    } else if (action === 'approve' && records.some(other => other.asset === r.asset &&
+      other.status === 'APPROVED' && other.start < r.end && r.start < other.end)) {
+      const message = 'Thiết bị đã có lịch trùng giờ. Yêu cầu vẫn chờ và có thể được từ chối.';
+      showFeedback(name(r) + ' · ' + message + ' Đang làm mới hàng đợi…', true);
+      await wait();
+      warnings.set(r.id, message);
+      showFeedback(name(r) + ' · Trùng lịch.');
+    } else {
+      r.status = action === 'approve' ? 'APPROVED' : 'REJECTED';
+      if (scenario === 'lost') {
+        scenario = 'normal';
+        showFeedback('Mất phản hồi. Đang kiểm tra trạng thái ' + name(r) + '…', true);
+        await wait();
+      }
+      showFeedback(name(r) + ' · ' + statusLabels[r.status] + '.');
+    }
+    render();
+    setBusy(false);
+    const rowButton = queue.querySelector('[data-id="' + r.id + '"][data-action="' + action + '"]');
+    (rowButton || byId('queueTitle')).focus();
+  }
+
+  queue.addEventListener('click', event => {
+    const button = event.target.closest('button[data-action]');
+    if (!button || busy) return;
+    const { action, id } = button.dataset;
+    if (action === 'retry') {
+      load(scenario, true);
+      return;
+    }
+    open(records.find(r => r.id === Number(id)), action);
+  });
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue === 'confirm' && selection.action !== 'detail') {
+      decide(selection.r, selection.action);
+    }
+  });
+  byId('load').addEventListener('click', () => load(byId('scenario').value));
+  load('normal');
+</script>
+</html>

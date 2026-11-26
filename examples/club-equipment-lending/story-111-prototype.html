@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mượn thiết bị CLB</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #eef3f0; color: #182d26; font: 1rem/1.55 system-ui, sans-serif; }
+  header { background: #153c30; color: #fff; }
+  .bar, .layout { max-width: 1050px; margin: auto; padding: 1.1rem; }
+  .bar, nav, .actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  nav { margin-left: auto; }
+  header a { color: #fff; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 1.2rem; margin-top: 2rem; align-items: start; }
+  .panel { padding: clamp(1rem, 4vw, 2rem); background: white; border: 1px solid #cbd8d1; border-radius: 16px; }
+  aside.panel { padding: 1.2rem; }
+  h1, h2, p { margin: 0 0 .85rem; }
+  h1 { font-size: clamp(1.65rem, 4vw, 2.4rem); line-height: 1.2; }
+  h2 { font-size: 1.12rem; }
+  label { display: block; font-weight: 650; margin-top: .8rem; }
+  input, select, button { font: inherit; border: 1px solid #718b80; border-radius: 8px; padding: .53rem .75rem; }
+  input, select { width: 100%; background: #fff; color: inherit; margin: .25rem 0 .7rem; }
+  button { background: #edf5f0; color: #153c30; cursor: pointer; }
+  button.primary { background: #17604a; color: white; }
+  button:disabled { opacity: .65; cursor: wait; }
+  :focus-visible { outline: 3px solid #a46015; outline-offset: 3px; }
+  a { color: #165d46; }
+  .error { color: #9b2723; }
+  .asset, .schedule { border: 1px solid #cbd8d1; border-radius: 10px; padding: 1rem; margin: .7rem 0; }
+  .asset { width: 100%; text-align: left; }
+  .asset[aria-pressed="true"] { border: 2px solid #17604a; background: #dcefe4; }
+  .schedule { background: #f6f9f7; }
+  .muted { color: #486057; }
+  output { display: block; margin-top: .8rem; overflow-wrap: anywhere; }
+  [hidden] { display: none !important; }
+  @media (max-width: 720px) { .layout { grid-template-columns: 1fr; margin-top: .5rem; } nav { margin-left: 0; } }
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <strong>Mượn thiết bị CLB</strong>
+  <nav aria-label="Điều hướng chính">
+    <span id="role"></span>
+    <a href="#equipment" id="equipment-link" hidden>Danh mục</a>
+    <a href="#management" id="management-link" hidden>Quản lý</a>
+    <button id="logout" hidden>Đăng xuất</button>
+  </nav>
+</div></header>
+<div class="layout">
+  <main class="panel">
+    <section id="login" aria-labelledby="login-title" hidden>
+      <h1 id="login-title" tabindex="-1">Đăng nhập</h1>
+      <form id="login-form">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" autocomplete="username" required>
+        <label for="password">Mật khẩu</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <p id="login-status" role="status"></p>
+        <button class="primary" id="submit" type="submit">Đăng nhập</button>
+      </form>
+      <label>Tài khoản mẫu</label>
+      <div class="actions">
+        <button id="fill-member">Điền mẫu thành viên</button>
+        <button id="fill-manager">Điền mẫu quản lý</button>
+      </div>
+    </section>
+    <section id="equipment" aria-labelledby="equipment-title" hidden>
+      <h1 id="equipment-title" tabindex="-1">Danh mục thiết bị</h1>
+      <div id="catalog-status" role="status"></div>
+      <button id="retry" hidden>Thử lại</button>
+      <div id="assets" hidden>
+        <button class="asset" data-code="DEMO-01" aria-pressed="true"><strong>Máy chiếu</strong><br>DEMO-01</button>
+        <button class="asset" data-code="DEMO-02" aria-pressed="false"><strong>Máy chiếu</strong><br>DEMO-02</button>
+        <div class="schedule" aria-live="polite">
+          <h2 id="schedule-title"></h2>
+          <p id="schedule-text"></p>
+          <small class="muted">Lịch minh họa Story #112 · 12/11/2026 · Asia/Bangkok</small>
+        </div>
+      </div>
+    </section>
+    <section id="management" aria-labelledby="management-title" hidden>
+      <h1 id="management-title" tabindex="-1">Quản lý</h1>
+      <p id="management-status"></p>
+      <a href="#equipment">Về danh mục</a>
+    </section>
+  </main>
+  <aside class="panel" aria-labelledby="demo-title">
+    <h2 id="demo-title">Mô phỏng</h2>
+    <p class="muted">Dữ liệu mẫu. Các phản hồi chạy trong trình duyệt.</p>
+    <div class="actions">
+      <a href="#equipment" data-route="equipment">Mở thẳng danh mục</a>
+      <a href="#management" data-route="management">Mở thẳng màn quản lý</a>
+    </div>
+    <label for="catalog-mode">Phản hồi danh mục</label>
+    <select id="catalog-mode">
+      <option value="ready">Có dữ liệu</option>
+      <option value="loading">Đang tải</option>
+      <option value="empty">Danh sách rỗng</option>
+      <option value="error">Lỗi tải</option>
+    </select>
+    <div class="actions">
+      <button id="probe">Gọi lớp quyền quản lý</button>
+      <button id="expire" disabled>Cho phiên hết hạn</button>
+    </div>
+    <output id="result" aria-live="polite"></output>
+  </aside>
+</div>
+<script>
+  const byId = (id) => document.getElementById(id);
+  const demoPassword = 'Prototype-111!';
+  const roles = new Map([
+    ['demo.member', 'MEMBER'],
+    ['demo.manager', 'MANAGER']
+  ]);
+  let role = null;
+  let catalogTimer;
+
+  function selectAsset(code) {
+    document.querySelectorAll('[data-code]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.code === code));
+    });
+    byId('schedule-title').textContent = 'Lịch của ' + code;
+    byId('schedule-text').textContent = code === 'DEMO-01'
+      ? '08:00–09:00 trống · 09:00–10:00 bận · 10:00–12:00 trống'
+      : '08:00–12:00 trống';
+  }
+
+  function showCatalog(mode) {
+    const messages = {
+      ready: '',
+      loading: 'Đang tải danh mục…',
+      empty: 'Chưa có thiết bị.',
+      error: 'Không tải được danh mục.'
+    };
+    byId('catalog-status').textContent = messages[mode];
+    byId('catalog-status').classList.toggle('error', mode === 'error');
+    byId('assets').hidden = mode !== 'ready';
+    byId('retry').hidden = mode !== 'error';
+  }
+
+  function loadCatalog() {
+    clearTimeout(catalogTimer);
+    const mode = byId('catalog-mode').value;
+    showCatalog('loading');
+    if (mode !== 'loading') {
+      catalogTimer = setTimeout(() => showCatalog(mode), 450);
+    }
+  }
+
+  function render(message = '', focus = true) {
+    clearTimeout(catalogTimer);
+    const route = location.hash === '#management' ? 'management' : 'equipment';
+    const screen = role ? route : 'login';
+    for (const id of ['login', 'equipment', 'management']) {
+      byId(id).hidden = id !== screen;
+    }
+    byId('role').textContent = role === 'MANAGER' ? 'Quản lý' : role ? 'Thành viên' : '';
+    byId('equipment-link').hidden = !role;
+    byId('management-link').hidden = role !== 'MANAGER';
+    byId('logout').hidden = !role;
+    byId('expire').disabled = !role;
+    byId('login-status').textContent = message;
+    byId('login-status').classList.toggle('error', Boolean(message));
+    if (screen === 'equipment') loadCatalog();
+    if (screen === 'management') {
+      byId('management-status').textContent = role === 'MANAGER'
+        ? 'Bạn có quyền truy cập. Hàng đợi yêu cầu được triển khai trong Story #114.'
+        : 'Bạn không có quyền truy cập.';
+    }
+    if (focus) byId(screen + '-title').focus();
+  }
+
+  function endSession(message) {
+    role = null;
+    history.replaceState(null, '', '#login');
+    byId('result').textContent = '';
+    render(message);
+  }
+
+  window.addEventListener('hashchange', () => render(
+    !role ? 'Vui lòng đăng nhập để tiếp tục.' : ''
+  ));
+  document.querySelectorAll('[data-route]').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (location.hash === link.hash) render(!role ? 'Vui lòng đăng nhập để tiếp tục.' : '');
+    });
+  });
+  byId('login-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const username = byId('username').value;
+    const password = byId('password').value;
+    byId('submit').disabled = true;
+    byId('login-status').classList.remove('error');
+    byId('login-status').textContent = 'Đang đăng nhập…';
+    setTimeout(() => {
+      byId('submit').disabled = false;
+      byId('password').value = '';
+      if (!roles.has(username) || password !== demoPassword) {
+        byId('login-status').classList.add('error');
+        byId('login-status').textContent = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+        byId('password').focus();
+        return;
+      }
+      role = roles.get(username);
+      history.replaceState(null, '', '#equipment');
+      byId('result').textContent = '';
+      render();
+    }, 450);
+  });
+  for (const account of ['member', 'manager']) {
+    byId('fill-' + account).addEventListener('click', () => {
+      byId('username').value = 'demo.' + account;
+      byId('password').value = demoPassword;
+      byId('submit').focus();
+    });
+  }
+  byId('catalog-mode').addEventListener('change', () => {
+    if (!byId('equipment').hidden) loadCatalog();
+  });
+  byId('retry').addEventListener('click', () => {
+    byId('catalog-mode').value = 'ready';
+    loadCatalog();
+    byId('equipment-title').focus();
+  });
+  document.querySelectorAll('[data-code]').forEach((button) => {
+    button.addEventListener('click', () => selectAsset(button.dataset.code));
+  });
+  byId('probe').addEventListener('click', () => {
+    const responses = {
+      MEMBER: '403 · Từ chối trước khi thực thi thao tác.',
+      MANAGER: '200 · Lớp quyền cho phép thực thi thao tác thử.'
+    };
+    byId('result').textContent = role ? responses[role] : '401 · Yêu cầu đăng nhập.';
+  });
+  byId('logout').addEventListener('click', () => endSession(''));
+  byId('expire').addEventListener('click', () => endSession('Phiên đã hết hạn. Vui lòng đăng nhập lại.'));
+  selectAsset('DEMO-01');
+  render(location.hash && location.hash !== '#login' ? 'Vui lòng đăng nhập để tiếp tục.' : '', false);
+</script>
+</body>
+</html>

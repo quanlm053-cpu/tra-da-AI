@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yêu cầu mượn · Club Equipment Lending</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f2f6f5; color: #17322e; font: 16px/1.5 Inter, system-ui, sans-serif; }
+  header { background: #132e2a; color: white; }
+  .wrap { max-width: 1000px; margin: auto; padding: 20px 24px; }
+  header .wrap { display: flex; align-items: center; gap: 16px; }
+  .mark { background: #c8f3d9; color: #132e2a; padding: 5px 9px; border-radius: 8px; font-weight: 800; }
+  nav, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+  nav { margin: 14px 0 26px; }
+  a { color: #075d45; font-weight: 650; }
+  a[aria-current="page"] { text-decoration-thickness: 3px; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.55rem); line-height: 1.15; margin: 0 0 12px; letter-spacing: -.04em; }
+  p { margin: 0 0 16px; }
+  .panel { background: white; border: 1px solid #d6e3df; border-radius: 18px; padding: clamp(16px, 4vw, 32px); }
+  .heading { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .muted { color: #48615a; }
+  button, .primary, select, input { font: inherit; }
+  button, .primary { border: 1px solid #11634e; background: #11634e; color: white; border-radius: 8px; padding: 8px 14px; cursor: pointer; text-decoration: none; }
+  button:disabled { opacity: .6; cursor: default; }
+  .secondary { background: white; color: #075d45; }
+  select, input { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #819890; border-radius: 8px; background: white; color: #17322e; }
+  label { display: block; font-weight: 650; }
+  .field { margin-bottom: 16px; }
+  fieldset { border: 0; padding: 0; margin: 0 0 12px; min-width: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+  .error { color: #932d21; }
+  .notice { border-radius: 8px; background: #ebf8ef; padding: 10px 14px; }
+  .notice.error { background: #fff0ec; }
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li { border-top: 1px solid #d6e3df; padding: 14px 0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: start; }
+  .badge { display: inline-block; border-radius: 30px; padding: 4px 10px; font-size: .85rem; font-weight: 700; background: #e7edf2; color: #263e52; }
+  .PENDING { background: #fff0cd; color: #684509; }
+  .APPROVED { background: #dff4e6; color: #155638; }
+  .REJECTED { background: #fae7e4; color: #81291f; }
+  .HANDED_OVER { background: #deedff; color: #1e477c; }
+  dt { color: #48615a; }
+  dd { margin: 0 0 12px; font-weight: 650; }
+  aside { margin-top: 24px; border-top: 1px solid #cfddd8; padding-top: 16px; }
+  aside select { width: auto; max-width: 100%; }
+  :focus-visible { outline: 3px solid #8f5917; outline-offset: 3px; }
+</style>
+<header><div class="wrap"><span class="mark" aria-hidden="true">CL</span><strong>Club Equipment Lending</strong></div></header>
+<div class="wrap">
+  <nav aria-label="Điều hướng yêu cầu"><a id="list-nav" href="#list">Yêu cầu của tôi</a><a id="new-nav" href="#new">Gửi yêu cầu</a></nav>
+  <main id="screen" class="panel" aria-label="Yêu cầu mượn" tabindex="-1"></main>
+  <aside aria-label="Điều khiển mô phỏng">
+    <div class="actions">
+      <label for="scenario">Mô phỏng</label>
+      <select id="scenario">
+        <option value="normal">Bình thường</option>
+        <option value="loading">Đang tải</option>
+        <option value="empty">Danh sách hoặc danh mục rỗng</option>
+        <option value="error">Lỗi tải dữ liệu</option>
+        <option value="auth">Hết phiên</option>
+        <option value="forbidden">Sai vai trò</option>
+        <option value="missing">Thiết bị vừa bị xóa khi gửi</option>
+        <option value="uncertain">Mất phản hồi khi gửi</option>
+        <option value="csrf">Token CSRF hết hiệu lực</option>
+      </select>
+      <a href="#request/9001">Mở yêu cầu của thành viên khác</a>
+      <a href="#request/9999">Mở mã chưa tồn tại</a>
+    </div>
+  </aside>
+</div>
+<script>
+  const screen = document.querySelector('#screen');
+  const scenario = document.querySelector('#scenario');
+  const devices = { 1: 'Máy chiếu · TB-001', 2: 'Loa di động · TB-002', 3: 'Chân máy · TB-003' };
+  const labels = { PENDING: 'Chờ duyệt', APPROVED: 'Đã duyệt', REJECTED: 'Đã từ chối', HANDED_OVER: 'Đã giao', RETURNED: 'Đã trả' };
+  const requests = Object.keys(labels).map((status, i) => ({
+    id: 105 - i, device: 1 + i % 3, start: `2026-11-${16 + i}T09:00`,
+    end: `2026-11-${16 + i}T10:00`, created: `2026-11-${15 - i}T14:00`, status
+  }));
+  const fmt = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Bangkok', dateStyle: 'short', timeStyle: 'short', hourCycle: 'h23'
+  });
+  const toInstant = local => new Date(local + ':00+07:00');
+  const format = local => fmt.format(toInstant(local));
+  const badge = status => `<span class="badge ${status}">${labels[status]}</span>`;
+  const listLink = '<a href="#list">Về danh sách</a>';
+  const newLink = '<a class="primary" href="#new">Gửi yêu cầu</a>';
+  const retry = '<button type="button" class="secondary" data-retry>Thử lại</button>';
+  let nextId = 106;
+  let confirmedId;
+  let sending = false;
+  let draft = { device: '', start: '', end: '' };
+
+  function render() {
+    const route = location.hash.slice(1) || 'list';
+    const isNew = route === 'new';
+    const isList = route === 'list';
+    const title = isNew ? 'Gửi yêu cầu mượn' : isList ? 'Yêu cầu của tôi' : 'Chi tiết yêu cầu';
+    document.querySelector('#new-nav').setAttribute('aria-current', isNew ? 'page' : 'false');
+    document.querySelector('#list-nav').setAttribute('aria-current', isList ? 'page' : 'false');
+    screen.setAttribute('aria-busy', String(scenario.value === 'loading'));
+    if (scenario.value === 'loading') {
+      screen.innerHTML = `<h1>${title}</h1><p role="status">Đang tải…</p>`;
+    } else if (scenario.value === 'auth' || scenario.value === 'forbidden' || scenario.value === 'error') {
+      const messages = { auth: 'Phiên đã hết hạn. Vui lòng đăng nhập lại.', forbidden: 'Bạn cần tài khoản thành viên để sử dụng chức năng này.', error: 'Không tải được dữ liệu.' };
+      screen.innerHTML = `<h1>${title}</h1><p class="notice error" role="alert">${messages[scenario.value]}</p>${scenario.value === 'error' ? retry : ''}`;
+    } else if (isNew) {
+      renderForm(title);
+    } else if (isList) {
+      renderList(title);
+    } else {
+      renderDetail(requests.find(item => route === `request/${item.id}`));
+    }
+  }
+
+  function renderList(title) {
+    const rows = scenario.value === 'empty' ? [] : requests;
+    screen.innerHTML = `<div class="heading"><div><h1>${title}</h1><div class="muted">Giờ CLB (UTC+7)</div></div>${newLink}</div>` +
+      (rows.length ? `<ul class="rows">${rows.map(item => `<li><div>
+      <a href="#request/${item.id}">#${item.id} · ${devices[item.device]}</a>
+      <div class="muted">${format(item.start)} – ${format(item.end)}</div></div>${badge(item.status)}</li>`).join('')}</ul>`
+      : '<p role="status">Bạn chưa có yêu cầu nào.</p>');
+  }
+
+  function renderDetail(item) {
+    if (!item) {
+      screen.innerHTML = `<h1>Chi tiết yêu cầu</h1><p class="notice error" role="alert">Không tìm thấy yêu cầu.</p>${listLink}`;
+      return;
+    }
+    screen.innerHTML = `<div class="heading"><h1>Yêu cầu #${item.id}</h1>${badge(item.status)}</div>
+      ${confirmedId === item.id ? '<p class="notice" role="status">Đã gửi yêu cầu.</p>' : ''}
+      <p class="muted">Giờ CLB (UTC+7)</p>
+      <dl class="grid"><div><dt>Thiết bị</dt><dd>${devices[item.device]}</dd></div>
+      <div><dt>Bắt đầu</dt><dd>${format(item.start)}</dd></div>
+      <div><dt>Kết thúc</dt><dd>${format(item.end)}</dd></div>
+      <div><dt>Thời điểm gửi</dt><dd>${format(item.created)}</dd></div></dl>${listLink}`;
+    confirmedId = undefined;
+  }
+
+  function renderForm(title) {
+    const empty = scenario.value === 'empty';
+    const catalog = Object.entries(devices).filter(([id]) => scenario.value !== 'missing' || id !== unavailableDevice);
+    screen.innerHTML = `<h1>${title}</h1><p class="muted">Giờ CLB (UTC+7)</p>
+      <form id="request-form" novalidate>
+        <div id="submit-feedback" role="alert" hidden></div>
+        <fieldset ${sending ? 'disabled' : ''}>
+        <div class="field"><label for="device">Thiết bị</label>
+        <select id="device" required aria-describedby="device-error" ${empty ? 'disabled' : ''}>
+        <option value="">Chọn thiết bị</option>
+        ${empty ? '' : catalog.map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}</select>
+        <div id="device-error" class="error">${empty ? 'Chưa có thiết bị để chọn.' : ''}</div></div>
+        <div class="grid"><div class="field"><label for="start">Bắt đầu</label>
+        <input id="start" type="datetime-local" required aria-describedby="start-error"><div id="start-error" class="error"></div></div>
+        <div class="field"><label for="end">Kết thúc</label>
+        <input id="end" type="datetime-local" required aria-describedby="end-error"><div id="end-error" class="error"></div></div></div>
+        <button ${empty ? 'disabled' : ''}>${sending ? 'Đang gửi…' : 'Gửi yêu cầu'}</button>
+        </fieldset>
+        ${sending ? '<p role="status">Đang gửi yêu cầu…</p>' : ''}
+        ${listLink}
+      </form>`;
+    for (const key of Object.keys(draft)) document.querySelector('#' + key).value = draft[key];
+  }
+
+  let unavailableDevice;
+  screen.addEventListener('input', event => {
+    const key = event.target.id;
+    if (Object.hasOwn(draft, key)) draft[key] = event.target.value;
+  });
+  function showFieldError(id, message) {
+    const field = document.querySelector('#' + id);
+    field.setAttribute('aria-invalid', 'true');
+    document.querySelector('#' + id + '-error').textContent = message;
+    field.focus();
+  }
+  screen.addEventListener('submit', event => {
+    event.preventDefault();
+    if (sending || scenario.value === 'empty') return;
+    const { device, start, end } = draft;
+    renderForm('Gửi yêu cầu mượn');
+    if (!device) return showFieldError('device', 'Chọn thiết bị.');
+    if (!start || !Number.isFinite(+toInstant(start))) return showFieldError('start', 'Nhập giờ bắt đầu hợp lệ.');
+    if (!end || !Number.isFinite(+toInstant(end))) return showFieldError('end', 'Nhập giờ kết thúc hợp lệ.');
+    if (toInstant(start) >= toInstant(end)) return showFieldError('end', 'Giờ kết thúc phải sau giờ bắt đầu.');
+    const simulation = scenario.value;
+    sending = true;
+    render();
+    setTimeout(() => {
+      sending = false;
+      if (simulation === 'missing') {
+        unavailableDevice = device;
+        draft.device = '';
+      } else if (simulation !== 'csrf') {
+        const now = new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 16);
+        const item = { id: nextId++, device, start, end, created: now, status: 'PENDING' };
+        requests.unshift(item);
+        if (simulation !== 'uncertain') {
+          draft = { device: '', start: '', end: '' };
+          if (location.hash === '#new') {
+            confirmedId = item.id;
+            location.hash = `request/${item.id}`;
+            return;
+          }
+        }
+      }
+      render();
+      const feedback = document.querySelector('#submit-feedback');
+      if (!feedback || scenario.value !== simulation) return;
+      if (simulation === 'missing') return showFieldError('device', 'Thiết bị này không còn trong danh mục. Hãy chọn thiết bị khác.');
+      if (simulation === 'uncertain' || simulation === 'csrf') {
+        feedback.hidden = false;
+        feedback.className = 'notice error';
+        feedback.textContent = simulation === 'uncertain'
+          ? 'Chưa xác nhận được kết quả. Hãy kiểm tra danh sách trước khi gửi lại.'
+          : 'Phiên bảo mật đã thay đổi. Hãy tải lại trang trước khi gửi lại.';
+      }
+    }, 500);
+  });
+  screen.addEventListener('click', event => {
+    if (event.target.matches('[data-retry]')) {
+      scenario.value = 'normal';
+      render();
+      screen.focus();
+    }
+  });
+  scenario.addEventListener('change', render);
+  window.addEventListener('hashchange', () => { render(); screen.focus(); });
+  render();
+</script>
+</html>

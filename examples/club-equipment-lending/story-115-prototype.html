@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Xác nhận giao thiết bị · CLB</title>
+  <style>
+    :root { font: 16px/1.55 "Inter", system-ui, sans-serif; color: #182c29; background: #f3f6f4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #133c34; color: white; }
+    header div, main { max-width: 1024px; margin: auto; padding: 20px 24px; }
+    header div, nav, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    header div { justify-content: space-between; }
+    header strong { font-size: 1.15rem; }
+    button { font: inherit; font-weight: 600; cursor: pointer; padding: 8px 13px; border: 1px solid #a1b7ae; border-radius: 8px; background: white; color: #164137; }
+    button[aria-pressed="true"], .primary { color: white; background: #20604e; border-color: #20604e; }
+    button:disabled { opacity: .65; cursor: default; }
+    button:focus-visible, h1:focus-visible { outline: 3px solid #b76920; outline-offset: 3px; }
+    main { padding-top: 30px; }
+    .panel, details { background: white; border: 1px solid #d5e1db; border-radius: 14px; padding: clamp(16px, 4vw, 32px); }
+    details { margin-top: 18px; padding: 14px 20px; }
+    summary { cursor: pointer; font-weight: 650; }
+    details .actions { margin-top: 12px; }
+    h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); line-height: 1.2; margin: 16px 0; }
+    dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+    dt, .muted { color: #4a6259; }
+    dd { margin: 4px 0; font-weight: 650; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; background: #e4f2ea; color: #215641; }
+    .notice { padding: 12px 16px; border-radius: 8px; background: #ebf4ef; }
+    .error { background: #fcece7; color: #842b19; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li { border-top: 1px solid #d5e1db; padding: 14px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    li span { display: block; }
+  </style>
+</head>
+<body>
+  <header><div>
+    <strong>Mượn thiết bị CLB</strong>
+    <nav aria-label="Vai trò mô phỏng">
+      <button id="manager" aria-pressed="true">Quản lý</button>
+      <button id="member" aria-pressed="false">Thành viên</button>
+    </nav>
+  </div></header>
+  <main>
+    <section class="panel" aria-labelledby="heading">
+      <button id="back" hidden>Về danh sách</button>
+      <h1 id="heading" tabindex="-1"></h1>
+      <div id="feedback" role="status" aria-live="polite"></div>
+      <div id="content"></div>
+    </section>
+    <details>
+      <summary>Dữ liệu thử</summary>
+      <p class="muted">Dữ liệu giả. Giờ hiện tại trong ví dụ là 11:15, 15/11/2026 (UTC+7).</p>
+      <div class="actions" id="scenarios">
+        <button data-case="held">Lượt trước quá hạn</button>
+        <button data-case="free">Thiết bị đã rảnh</button>
+        <button data-case="empty">Danh sách rỗng</button>
+        <button data-case="list-error">Lỗi tải danh sách</button>
+        <button data-case="detail-error">Lỗi tải chi tiết</button>
+        <button data-case="stale">Yêu cầu đổi trạng thái</button>
+        <button data-case="lost-before">Mất phản hồi trước khi lưu</button>
+        <button data-case="lost-after">Mất phản hồi sau khi lưu</button>
+      </div>
+    </details>
+  </main>
+  <script>
+    const labels = { APPROVED: 'Đã duyệt', HANDED_OVER: 'Đã giao', RETURNED: 'Đã trả' };
+    const sample = [
+      { id: 'YC-025', equipmentId: 'DEMO-01', device: 'Máy chiếu', borrower: 'Thành viên mẫu A', slot: '10:00–11:00', status: 'HANDED_OVER' },
+      { id: 'YC-026', equipmentId: 'DEMO-01', device: 'Máy chiếu', borrower: 'Thành viên mẫu B', slot: '11:00–12:00', status: 'APPROVED' },
+      { id: 'YC-027', equipmentId: 'DEMO-02', device: 'Loa di động', borrower: 'Thành viên mẫu B', slot: '12:00–13:00', status: 'APPROVED' },
+    ];
+    const get = (id) => document.getElementById(id);
+    let records, role = 'manager', selected, sendMode, locked, busy = false;
+    const delay = () => new Promise((resolve) => setTimeout(resolve, 450));
+
+    function notice(message, error = false) {
+      const feedback = get('feedback');
+      feedback.className = message ? (error ? 'notice error' : 'notice') : '';
+      feedback.textContent = message;
+    }
+
+    function setBusy(value) {
+      busy = value;
+      document.querySelectorAll('nav button, #scenarios button, #back').forEach((button) => {
+        button.disabled = value;
+      });
+      get('content').setAttribute('aria-busy', String(value));
+    }
+
+    function render() {
+      const request = records.find(({ id }) => id === selected);
+      const content = get('content');
+      if (selected) {
+        if (!request || (role === 'member' && request.borrower !== 'Thành viên mẫu B')) {
+          content.innerHTML = '';
+          notice('Không tìm thấy yêu cầu.', true);
+          return;
+        }
+        content.innerHTML = `<dl>
+          <div><dt>Thiết bị</dt><dd>${request.equipmentId} · ${request.device}</dd></div>
+          <div><dt>Người mượn</dt><dd>${request.borrower}</dd></div>
+          <div><dt>Giờ đặt (UTC+7)</dt><dd>${request.slot}<br>15/11/2026</dd></div>
+          <div><dt>Trạng thái</dt><dd><span class="badge">${labels[request.status]}</span></dd></div>
+        </dl><div class="actions">
+          <button id="reload">Tải lại chi tiết</button>
+          ${role === 'manager' && request.status === 'APPROVED' ?
+            '<button id="handover" class="primary">Xác nhận giao</button>' : ''}
+        </div>`;
+        get('reload').onclick = () => load(selected);
+        if (get('handover')) {
+          get('handover').disabled = locked;
+          get('handover').onclick = () => handover(request);
+        }
+        return;
+      }
+      const visible = records.filter((request) => role === 'manager' ?
+        request.status === 'APPROVED' : request.borrower === 'Thành viên mẫu B');
+      if (!visible.length) {
+        content.textContent = role === 'manager' ? 'Chưa có yêu cầu đã duyệt.' : 'Bạn chưa có yêu cầu mượn.';
+        return;
+      }
+      content.innerHTML = `<ul>${visible.map((request) => `<li>
+        <div><strong>${request.id} · ${request.equipmentId} · ${request.device}</strong>
+          <span class="muted">${request.borrower} · ${request.slot} · 15/11/2026 (UTC+7)</span>
+          <span class="badge">${labels[request.status]}</span></div>
+        <button data-id="${request.id}" aria-label="Mở chi tiết ${request.id}">Mở chi tiết</button>
+      </li>`).join('')}</ul>`;
+    }
+
+    async function load(id = null, fail = false) {
+      selected = id;
+      const heading = get('heading');
+      heading.textContent = id ? `Yêu cầu ${id}` :
+        role === 'manager' ? 'Yêu cầu đã duyệt' : 'Yêu cầu của tôi';
+      get('back').hidden = !id;
+      get('content').replaceChildren();
+      heading.focus();
+      setBusy(true);
+      notice(id ? 'Đang tải chi tiết…' : 'Đang tải danh sách…');
+      await delay();
+      setBusy(false);
+      if (fail) {
+        notice(id ? 'Không tải được chi tiết.' : 'Không tải được danh sách.', true);
+        get('content').innerHTML = '<button id="retry">Thử tải lại</button>';
+        get('retry').onclick = () => load(id);
+        return;
+      }
+      locked = false;
+      notice('');
+      render();
+    }
+
+    function commit(request) {
+      request.status = 'HANDED_OVER';
+      request.event = { actor: 'Quản lý mẫu', occurredAt: '2026-11-15T04:15:00Z' };
+    }
+
+    async function handover(request) {
+      if (busy || locked || role !== 'manager') return;
+      const mode = sendMode;
+      sendMode = null;
+      setBusy(true);
+      get('handover').disabled = true;
+      get('reload').disabled = true;
+      notice('Đang xác nhận giao…');
+      await delay();
+      setBusy(false);
+      const held = records.some((other) => other !== request &&
+        other.equipmentId === request.equipmentId && other.status === 'HANDED_OVER');
+      if (mode === 'stale') {
+        commit(request);
+        locked = true;
+        notice('Trạng thái đã thay đổi. Hãy tải lại chi tiết.', true);
+      } else if (held) {
+        notice('Thiết bị vẫn đang được giữ. Hãy xác nhận nhận lại trước khi giao lượt này.', true);
+      } else if (mode === 'lost-before' || mode === 'lost-after') {
+        if (mode === 'lost-after') commit(request);
+        locked = true;
+        notice('Chưa xác định được kết quả giao. Hãy tải lại chi tiết trước khi thử lại.', true);
+      } else {
+        commit(request);
+        render();
+        notice('Đã xác nhận giao thiết bị.');
+        get('heading').focus();
+        return;
+      }
+      // Giữ nguyên trạng thái đang hiển thị đến lần đọc lại khi kết quả chưa rõ.
+      get('handover').disabled = locked;
+      get('reload').disabled = false;
+      get(locked ? 'reload' : 'handover').focus();
+    }
+
+    function scenario(key) {
+      records = key === 'empty' ? [] : sample.map((request) => ({ ...request }));
+      sendMode = ['stale', 'lost-before', 'lost-after'].includes(key) ? key : null;
+      if (key === 'free' || sendMode) records[0].status = 'RETURNED';
+      if (['empty', 'list-error'].includes(key)) return load(null, key === 'list-error');
+      return load('YC-026', key === 'detail-error');
+    }
+
+    get('back').onclick = () => load();
+    get('content').onclick = (event) => {
+      if (event.target.dataset.id) load(event.target.dataset.id);
+    };
+    get('scenarios').onclick = (event) => {
+      if (event.target.dataset.case) scenario(event.target.dataset.case);
+    };
+    for (const view of ['manager', 'member']) {
+      get(view).onclick = () => {
+        role = view;
+        get('manager').setAttribute('aria-pressed', String(view === 'manager'));
+        get('member').setAttribute('aria-pressed', String(view === 'member'));
+        load();
+      };
+    }
+    records = sample.map((request) => ({ ...request }));
+    load();
+  </script>
+</body>
+</html>

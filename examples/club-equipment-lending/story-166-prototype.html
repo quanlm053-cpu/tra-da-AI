@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mượn thiết bị CLB · Đăng ký thành viên</title>
+<style>
+:root { font: 100%/1.55 Inter, "Segoe UI", sans-serif; color: #132e31; background: #eef5f2; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { background: #123b38; color: white; padding: 1rem max(1rem, calc((100% - 55rem)/2)); }
+main, aside { width: min(100% - 2rem, 34rem); margin: 2rem auto; }
+main { background: white; border: 1px solid #ccded7; border-radius: 1.25rem; padding: clamp(1.25rem, 5vw, 2.5rem); box-shadow: 0 12px 32px #14373312; }
+h1 { margin: 0 0 1rem; font-size: clamp(1.7rem, 6vw, 2.2rem); line-height: 1.15; }
+label { display: block; font-weight: 650; margin-top: 1rem; }
+input, select, button { font: inherit; }
+input, select { width: 100%; padding: .65rem .75rem; border: 1px solid #66837d; border-radius: .5rem; background: white; color: inherit; }
+input[aria-invalid="true"] { border: 2px solid #9b2735; }
+.hint { color: #405a55; font-size: .9rem; margin: .25rem 0; }
+.error:not(:empty) { color: #902032; margin: .35rem 0; }
+.error:empty, [role="status"]:empty { margin: 0; }
+button, .button { display: inline-block; cursor: pointer; border: 0; border-radius: .55rem; background: #126354; color: white; padding: .65rem 1rem; font-weight: 650; text-decoration: none; }
+button:disabled { background: #526a65; cursor: wait; }
+a { color: #07594b; text-underline-offset: .2em; }
+:focus-visible { outline: 3px solid #a34b08; outline-offset: 4px; }
+.actions { margin: 1.3rem 0 0; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+aside { border-top: 1px solid #a9c1b8; padding-top: 1rem; }
+ul { padding: 0; list-style: none; }
+li { border: 1px solid #ccded7; border-radius: .6rem; padding: .8rem; margin: .6rem 0; }
+</style>
+</head>
+<body>
+<header><strong>Mượn thiết bị CLB</strong></header>
+<main>
+  <section id="login">
+    <h1 tabindex="-1">Đăng nhập</h1>
+    <form id="login-form" novalidate>
+      <label for="login-name">Tên đăng nhập</label>
+      <input id="login-name" autocomplete="username" maxlength="128" required>
+      <label for="login-password">Mật khẩu</label>
+      <input id="login-password" type="password" autocomplete="current-password" required>
+      <p id="login-message" class="error" role="alert"></p>
+      <div class="actions"><button>Đăng nhập</button><a href="#register" id="open-register">Đăng ký</a></div>
+    </form>
+  </section>
+  <section id="register" hidden>
+    <h1 tabindex="-1">Đăng ký tài khoản</h1>
+    <form id="register-form" novalidate>
+      <div id="register-fields">
+        <label for="register-name">Tên đăng nhập</label>
+        <input id="register-name" autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="name-hint name-error" required>
+        <p id="name-hint" class="hint">3–64 ký tự sau khi bỏ khoảng trắng ở hai đầu. Bắt đầu bằng chữ cái không dấu hoặc số. Có thể dùng dấu chấm, gạch dưới và gạch ngang ở các vị trí tiếp theo.</p>
+        <p id="name-error" class="error" role="alert"></p>
+        <label for="register-password">Mật khẩu</label>
+        <input id="register-password" type="password" autocomplete="new-password" aria-describedby="password-hint password-error" required>
+        <p id="password-hint" class="hint">Ít nhất 12 ký tự Unicode, tối đa 1.024 byte và có ít nhất một ký tự khác khoảng trắng.</p>
+        <p id="password-error" class="error" role="alert"></p>
+      </div>
+      <p id="register-status" role="status"></p>
+      <p id="register-error" class="error" role="alert"></p>
+      <div class="actions"><button id="register-submit">Tạo tài khoản</button><a href="#login" id="exit-register">Về đăng nhập</a></div>
+    </form>
+  </section>
+  <section id="success" hidden>
+    <h1 tabindex="-1">Đã tạo tài khoản</h1>
+    <p>Tài khoản <strong id="created-name"></strong> đã sẵn sàng. Hãy đăng nhập bằng mật khẩu vừa tạo.</p>
+    <a href="#login" class="button" id="finish">Về đăng nhập</a>
+  </section>
+  <section id="catalog" hidden>
+    <h1 tabindex="-1">Danh mục thiết bị</h1>
+    <p id="member-name"></p>
+    <p id="catalog-status" role="status"></p>
+    <p id="catalog-error" class="error" role="alert"></p>
+    <ul id="items" hidden><li>Máy chiếu mini · TB-DEMO-01</li><li>Chân máy ảnh · TB-DEMO-02</li></ul>
+    <div class="actions"><button type="button" id="catalog-retry" hidden>Thử lại</button><a href="#login" id="logout">Đăng xuất</a></div>
+  </section>
+</main>
+<aside aria-label="Điều khiển prototype">
+  <details open>
+    <summary>Mô phỏng với dữ liệu tổng hợp</summary>
+    <p class="hint">Ví dụ tên demo.member166, mật khẩu Demo only 166! Giao diện chạy trong tab và không gọi máy chủ.</p>
+    <label for="register-case">Kết quả gửi đăng ký</label>
+    <select id="register-case">
+      <option value="normal">Theo dữ liệu nhập</option>
+      <option value="duplicate">Tên đã được sử dụng</option>
+      <option value="rate">Quá hạn mức · chờ 5 giây</option>
+      <option value="server">Lỗi máy chủ</option>
+      <option value="origin">Origin sai</option>
+      <option value="uncertain">Mất phản hồi sau khi đã lưu</option>
+    </select>
+    <label for="catalog-case">Kết quả tải danh mục</label>
+    <select id="catalog-case">
+      <option value="normal">Có thiết bị mẫu</option>
+      <option value="empty">Danh mục rỗng</option>
+      <option value="error">Lỗi tải danh mục</option>
+      <option value="expired">Phiên hết hạn</option>
+    </select>
+  </details>
+</aside>
+<noscript>Vui lòng bật JavaScript để thử prototype.</noscript>
+<script>
+const byId = id => document.getElementById(id);
+const screens = [...document.querySelectorAll('main section')];
+const username = byId('register-name');
+const password = byId('register-password');
+const submit = byId('register-submit');
+const accounts = new Map();
+let registerTimer;
+let cooldownTimer;
+let catalogTimer;
+let retryAt = 0;
+let activeMember = '';
+
+function show(screen) {
+  clearTimeout(catalogTimer);
+  for (const section of screens) section.hidden = section.id !== screen;
+  byId(screen).querySelector('h1').focus();
+}
+
+function fieldError(field, errorId, message = '') {
+  byId(errorId).textContent = message;
+  if (message) field.setAttribute('aria-invalid', 'true');
+  else field.removeAttribute('aria-invalid');
+}
+
+function setBusy(busy) {
+  username.readOnly = password.readOnly = busy;
+  submit.disabled = busy || Date.now() < retryAt;
+  byId('register-status').textContent = busy ? 'Đang tạo tài khoản…' : '';
+}
+
+function resetRegister() {
+  clearTimeout(registerTimer);
+  clearTimeout(cooldownTimer);
+  byId('register-form').reset();
+  fieldError(username, 'name-error');
+  fieldError(password, 'password-error');
+  byId('register-error').textContent = '';
+  setBusy(false);
+}
+
+function loginScreen(name = '', message = '') {
+  resetRegister();
+  activeMember = '';
+  byId('login-name').value = name;
+  byId('login-password').value = '';
+  byId('login-message').textContent = message;
+  show('login');
+}
+
+function cooldown() {
+  const seconds = Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
+  submit.disabled = seconds > 0;
+  byId('register-status').textContent = seconds ? 'Quá nhiều lượt đăng ký. Hãy thử lại sau ' + seconds + ' giây.' : 'Bạn có thể gửi lại.';
+  if (seconds) cooldownTimer = setTimeout(cooldown, 250);
+}
+
+function loadCatalog() {
+  byId('catalog-retry').hidden = true;
+  byId('items').hidden = true;
+  byId('catalog-error').textContent = '';
+  byId('catalog-status').textContent = 'Đang tải danh mục…';
+  const scenario = byId('catalog-case').value;
+  catalogTimer = setTimeout(() => {
+    byId('catalog-status').textContent = '';
+    if (scenario === 'expired') return loginScreen(activeMember, 'Phiên đã hết hạn. Hãy đăng nhập lại.');
+    if (scenario === 'error') {
+      byId('catalog-error').textContent = 'Chưa thể tải danh mục thiết bị.';
+      byId('catalog-retry').hidden = false;
+    } else if (scenario === 'empty') {
+      byId('catalog-status').textContent = 'Chưa có thiết bị trong danh mục.';
+    } else {
+      byId('items').hidden = false;
+      byId('catalog-status').textContent = 'Có 2 thiết bị.';
+    }
+  }, 650);
+}
+
+function link(id, action) {
+  byId(id).addEventListener('click', event => {
+    event.preventDefault();
+    action();
+  });
+}
+
+link('open-register', () => {
+  byId('login-password').value = '';
+  resetRegister();
+  show('register');
+  if (Date.now() < retryAt) cooldown();
+});
+link('exit-register', () => loginScreen(username.value.trim().toLowerCase()));
+link('finish', () => loginScreen(byId('created-name').textContent));
+link('logout', () => loginScreen());
+byId('catalog-retry').addEventListener('click', loadCatalog);
+
+byId('register-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (submit.disabled) return;
+  byId('register-error').textContent = '';
+  const rawName = username.value;
+  const name = rawName.trim().toLowerCase();
+  const secret = password.value;
+  const nameError = !name ? 'Hãy nhập tên đăng nhập.' :
+    rawName.length > 128 || !/^[a-z0-9][a-z0-9._-]{2,63}$/.test(name) ? 'Tên đăng nhập chưa đúng quy tắc.' : '';
+  const passwordError = !secret ? 'Hãy nhập mật khẩu.' :
+    [...secret].length < 12 || !secret.trim() || new TextEncoder().encode(secret).length > 1024 ? 'Mật khẩu chưa đủ độ dài hoặc sai quy tắc.' : '';
+  fieldError(username, 'name-error', nameError);
+  fieldError(password, 'password-error', passwordError);
+  if (nameError || passwordError) {
+    (nameError ? username : password).focus();
+    return;
+  }
+
+  setBusy(true);
+  const scenario = byId('register-case').value;
+  registerTimer = setTimeout(() => {
+    setBusy(false);
+    if (scenario === 'rate') {
+      retryAt = Date.now() + 5000;
+      cooldown();
+    } else if (scenario === 'origin') {
+      byId('register-error').textContent = 'Không thể gửi đăng ký từ trang này. Hãy mở lại trang đăng nhập của CLB.';
+    } else if (scenario === 'server') {
+      byId('register-error').textContent = 'Chưa thể tạo tài khoản. Hãy thử lại.';
+    } else if (scenario === 'duplicate' || accounts.has(name)) {
+      fieldError(username, 'name-error', 'Tên đăng nhập đã được sử dụng.');
+      username.focus();
+    } else {
+      accounts.set(name, secret);
+      if (scenario === 'uncertain') {
+        byId('register-error').textContent = 'Chưa xác định tài khoản đã được tạo. Bạn có thể thử đăng nhập hoặc gửi lại.';
+      } else {
+        byId('created-name').textContent = name;
+        resetRegister();
+        show('success');
+      }
+    }
+  }, 650);
+});
+
+byId('login-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const name = byId('login-name').value.trim().toLowerCase();
+  const secret = byId('login-password').value;
+  byId('login-password').value = '';
+  if (accounts.get(name) !== secret) {
+    byId('login-message').textContent = 'Tên đăng nhập hoặc mật khẩu chưa đúng.';
+    byId('login-password').focus();
+    return;
+  }
+  byId('login-message').textContent = '';
+  activeMember = name;
+  byId('member-name').textContent = name + ' · Thành viên';
+  show('catalog');
+  loadCatalog();
+});
+</script>
+</body>
+</html>

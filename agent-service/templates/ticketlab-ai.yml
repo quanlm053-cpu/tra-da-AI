@@ -1,0 +1,51 @@
+name: TicketLab AI validation
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['ai/story-*']
+permissions:
+  contents: read
+concurrency:
+  group: ticketlab-ai-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    name: ticketlab-ai-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:5101/api
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm --prefix backend ci --ignore-scripts
+      - name: Backend unit checks (mocked SQL, not database acceptance)
+        run: node --test backend/tests/booking.test.js
+      - name: Build frontend
+        run: npm run build
+      - name: Install Chromium for UI smoke
+        run: npx playwright install --with-deps chromium
+      - name: Start frontend preview
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3101 > /tmp/ticketlab-preview.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3101/ > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/ticketlab-preview.log
+          exit 1
+      - name: Render desktop and mobile
+        run: node scripts/ai-ui-smoke.mjs
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: ticketlab-ui-evidence
+          path: test-results/ai-ui/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nhận lại thiết bị · Club Equipment Lending</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f7f6; color: #182925; font: 1rem/1.55 Inter, system-ui, sans-serif; }
+  header { padding: 1rem max(1rem, calc((100% - 58rem)/2)); background: #173a31; color: white; font-weight: 700; }
+  main { max-width: 60rem; margin: auto; padding: 1rem; }
+  nav, .actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+  button, select { font: inherit; border: 1px solid #678077; border-radius: .55rem; padding: .55rem .8rem; background: white; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .65; cursor: wait; }
+  button[aria-pressed=true], .primary { background: #17634f; border-color: #17634f; color: white; }
+  :focus-visible { outline: 3px solid #a25311; outline-offset: 3px; }
+  h1 { margin-bottom: .7rem; font-size: clamp(1.6rem, 5vw, 2.2rem); }
+  article, .panel { background: white; border: 1px solid #cfdbd6; border-radius: .8rem; padding: 1rem 1.2rem; margin-block: 1rem; }
+  article h2 { margin: .25rem 0; font-size: 1.25rem; }
+  dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .6rem; }
+  dt { color: #425a52; }
+  dd { margin: 0; font-weight: 600; }
+  .badge { display: inline-block; background: #e3f1eb; border-radius: 1rem; padding: .1rem .6rem; }
+  #notice:not(:empty) { padding: .7rem 1rem; background: #e3f1eb; border-radius: .55rem; }
+  [role=alert] { color: #8c2e22; }
+  dialog { width: min(29rem, calc(100% - 2rem)); border: 1px solid #678077; border-radius: .8rem; padding: 1.3rem; color: inherit; }
+  dialog::backdrop { background: #122b24a0; }
+  dialog h2 { margin-top: 0; }
+  details { margin-top: 2rem; }
+  summary { cursor: pointer; font-weight: 600; }
+  details label, details select { display: block; margin-top: .5rem; max-width: 100%; }
+</style>
+<header>Club Equipment Lending</header>
+<main>
+  <nav aria-label="Màn hình">
+    <button data-view="manager" aria-pressed="true">Quản lý</button>
+    <button data-view="member" aria-pressed="false">Thành viên</button>
+    <button data-view="calendar" aria-pressed="false">Lịch thiết bị</button>
+  </nav>
+  <h1 id="title" tabindex="-1">Yêu cầu đã giao</h1>
+  <p id="notice" role="status"></p>
+  <section id="content" aria-label="Nội dung"></section>
+  <details>
+    <summary>Kịch bản mô phỏng</summary>
+    <label for="scenario">Chọn tình huống để đặt lại dữ liệu mẫu</label>
+    <select id="scenario">
+      <option value="normal">Nhận lại thành công</option>
+      <option value="empty">Danh sách rỗng</option>
+      <option value="load-error">Lỗi tải màn hình một lần</option>
+      <option value="conflict">Quản lý khác vừa xác nhận</option>
+      <option value="lost">Mất phản hồi sau khi đã lưu</option>
+      <option value="lost-read-error">Mất phản hồi và lần đầu tải lại chi tiết thất bại</option>
+      <option value="write-error">Ghi sự kiện thất bại</option>
+    </select>
+    <button id="reset">Áp dụng kịch bản</button>
+  </details>
+</main>
+<dialog id="confirm" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+  <h2 id="dialog-title">Xác nhận nhận lại</h2>
+  <p id="dialog-description">Xác nhận đã nhận lại Máy chiếu PJ-01 cho yêu cầu MT-024?</p>
+  <p id="progress" role="status"></p>
+  <div class="actions">
+    <button id="cancel" autofocus>Hủy</button>
+    <button id="submit" class="primary">Xác nhận nhận lại</button>
+  </div>
+</dialog>
+<script>
+  const get = (id) => document.getElementById(id);
+  const content = get('content');
+  const notice = get('notice');
+  const dialog = get('confirm');
+  const title = get('title');
+  const nav = [...document.querySelectorAll('[data-view]')];
+  const titles = { manager: 'Yêu cầu đã giao', member: 'Yêu cầu của tôi', calendar: 'Lịch thiết bị' };
+  let view = 'manager';
+  let scenario = 'normal';
+  let loadError = false;
+  let returned = false;
+  let detail = false;
+  let recoveryReadError = false;
+  let nextHandedOver = false;
+  let submitting = false;
+  let readVersion = 0;
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  function receiver() {
+    return scenario === 'conflict' ? 'Quản lý mẫu B' : 'Quản lý mẫu A';
+  }
+
+  function showResult() {
+    notice.textContent = `MT-024 · Đã trả. Người nhận: ${receiver()} · 10:00, 18/11/2026 (giờ CLB).`;
+  }
+
+  function openDetail() {
+    detail = true;
+    title.textContent = 'Chi tiết yêu cầu MT-024';
+    notice.textContent = '';
+    title.focus();
+    load();
+  }
+
+  function loanCard(status, action = '') {
+    return `<article><span class="badge">${status}</span><h2>Máy chiếu PJ-01</h2>
+      <dl><div><dt>Yêu cầu</dt><dd>MT-024</dd></div><div><dt>Người mượn</dt><dd>Thành viên mẫu</dd></div>
+      <div><dt>Giờ đặt · 18/11/2026</dt><dd>09:00–11:00</dd></div></dl>${action}</article>`;
+  }
+
+  async function load() {
+    const version = ++readVersion;
+    content.innerHTML = '<p role="status">Đang tải…</p>';
+    await delay(550);
+    if (version !== readVersion) return;
+    if (loadError) {
+      loadError = false;
+      scenario = 'normal';
+      content.innerHTML = '<div class="panel"><p role="alert">Không tải được dữ liệu.</p><button id="retry">Thử tải lại</button></div>';
+      get('retry').onclick = load;
+      return;
+    }
+    if (detail) {
+      const audit = view === 'manager' && returned
+        ? `<dl><div><dt>Người nhận</dt><dd>${receiver()}</dd></div><div><dt>Giờ nhận · 18/11/2026</dt><dd>10:00 (giờ CLB)</dd></div></dl>`
+        : '';
+      content.innerHTML = loanCard(returned ? 'Đã trả' : 'Đã giao', audit +
+        '<div class="actions"><button id="back">Quay lại danh sách</button><button id="refresh">Tải lại chi tiết</button></div>');
+      get('back').onclick = () => selectView(view);
+      get('refresh').onclick = load;
+      return;
+    }
+    if (view === 'member') {
+      content.innerHTML = scenario === 'empty'
+        ? '<div class="panel">Bạn chưa có yêu cầu mượn thiết bị.</div>'
+        : loanCard(returned ? 'Đã trả' : 'Đã giao', '<button id="detail">Xem chi tiết</button>');
+      if (get('detail')) get('detail').onclick = openDetail;
+      return;
+    }
+    if (view === 'calendar') {
+      const firstSlot = returned || scenario === 'empty' ? 'Trống' : 'Bận';
+      const secondSlot = scenario === 'empty' ? 'Trống' : 'Bận';
+      content.innerHTML = `<article><h2>Máy chiếu PJ-01</h2><p>18/11/2026 · Giờ CLB (UTC+7)</p>
+        <dl><div><dt>10:00–11:00</dt><dd>${firstSlot}</dd></div>
+        <div><dt>11:00–12:00</dt><dd>${secondSlot}</dd></div></dl></article>`;
+      return;
+    }
+    const active = !returned && scenario !== 'empty';
+    if (active) {
+      content.innerHTML = loanCard('Đã giao', '<button id="open" class="primary">Xác nhận nhận lại</button>');
+      get('open').onclick = () => dialog.showModal();
+    } else if (nextHandedOver) {
+      content.innerHTML = '<article><span class="badge">Đã giao</span><h2>Máy chiếu PJ-01 · MT-025</h2><p>11:00–12:00 · 18/11/2026</p></article>';
+    } else {
+      content.innerHTML = '<div class="panel">Không có yêu cầu đã giao.</div>';
+    }
+    if (returned) {
+      content.insertAdjacentHTML('beforeend', '<div class="panel"><button id="detail">Xem chi tiết MT-024</button></div>');
+      get('detail').onclick = openDetail;
+    }
+    if (scenario === 'empty' || nextHandedOver) return;
+    content.insertAdjacentHTML('beforeend', '<article><span class="badge">Đã duyệt</span><h2>Lượt kế tiếp · MT-025</h2><p>Máy chiếu PJ-01 · 11:00–12:00</p><button id="handover">Thử xác nhận giao</button><p id="handover-result" role="status"></p></article>');
+    get('handover').onclick = () => {
+      if (!returned) {
+        get('handover-result').textContent = 'Thiết bị đang được mượn. MT-025 vẫn ở trạng thái Đã duyệt.';
+        return;
+      }
+      nextHandedOver = true;
+      notice.textContent = 'MT-025 · Đã giao cho lượt kế tiếp.';
+      title.focus();
+      load();
+    };
+  }
+
+  async function reconcile(result) {
+    const messages = {
+      conflict: 'Yêu cầu đã thay đổi ở phiên khác.',
+      lost: 'Mất kết nối khi chờ kết quả.',
+      'lost-read-error': 'Mất kết nối khi chờ kết quả.',
+      'write-error': 'Máy chủ báo lỗi khi ghi nhận.'
+    };
+    notice.textContent = messages[result] + ' Đang tải lại chi tiết yêu cầu…';
+    await delay(600);
+    if (recoveryReadError) {
+      recoveryReadError = false;
+      notice.textContent = 'Chưa xác định được kết quả xác nhận.';
+      content.innerHTML = '<div class="panel"><p role="alert">Không tải được chi tiết yêu cầu.</p><button id="retry-detail">Thử tải lại chi tiết</button></div>';
+      get('retry-detail').focus();
+      await new Promise((resolve) => { get('retry-detail').onclick = resolve; });
+      title.focus();
+      content.replaceChildren();
+      return reconcile(result);
+    }
+    if (returned) showResult();
+    else notice.textContent = 'MT-024 vẫn đang Đã giao. Bạn có thể xác nhận lại.';
+    await load();
+  }
+
+  get('cancel').onclick = () => dialog.close();
+  dialog.addEventListener('cancel', (event) => {
+    if (submitting) event.preventDefault();
+  });
+  get('submit').onclick = async () => {
+    if (submitting) return;
+    submitting = true;
+    get('cancel').disabled = true;
+    get('submit').disabled = true;
+    get('progress').textContent = 'Đang xác nhận…';
+    await delay(650);
+    const result = scenario;
+    returned = result !== 'write-error';
+    dialog.close();
+    title.focus();
+    get('progress').textContent = '';
+    get('cancel').disabled = false;
+    get('submit').disabled = false;
+    if (result === 'normal') {
+      showResult();
+      await load();
+    } else {
+      content.replaceChildren();
+      nav.forEach((button) => { button.disabled = true; });
+      get('reset').disabled = true;
+      await reconcile(result);
+      nav.forEach((button) => { button.disabled = false; });
+      get('reset').disabled = false;
+      if (result === 'write-error') scenario = 'normal';
+    }
+    submitting = false;
+  };
+
+  function selectView(nextView) {
+    view = nextView;
+    detail = false;
+    nav.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+    title.textContent = titles[view];
+    notice.textContent = '';
+    title.focus();
+    load();
+  }
+  nav.forEach((button) => { button.onclick = () => selectView(button.dataset.view); });
+  get('reset').onclick = () => {
+    scenario = get('scenario').value;
+    loadError = scenario === 'load-error';
+    recoveryReadError = scenario === 'lost-read-error';
+    returned = false;
+    nextHandedOver = false;
+    selectView('manager');
+  };
+  load();
+</script>
+</html>

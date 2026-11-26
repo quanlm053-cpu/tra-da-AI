@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lịch trống thiết bị · Club Equipment Lending</title>
+  <style>
+    :root { font: 16px/1.55 Inter, system-ui, sans-serif; color: #152e29; background: #eef4ef; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; }
+    header { background: #123a31; color: #fff; padding: 1rem max(1rem, calc((100% - 64rem) / 2)); }
+    main { max-width: 66rem; margin: auto; padding: 2rem 1rem; }
+    h1, h2, p { margin: 0 0 .7rem; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.75rem); letter-spacing: -.045em; }
+    h2 { font-size: 1.2rem; }
+    .layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem; align-items: start; }
+    section, details { border: 1px solid #cbdad0; background: #fff; border-radius: 1rem; padding: 1.25rem; }
+    details { margin-top: 1rem; background: #f7faf7; }
+    details label { margin: .75rem 0; }
+    fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+    label { display: block; margin-bottom: .85rem; font-weight: 650; }
+    input, select, button { font: inherit; border-radius: .5rem; padding: .55rem .7rem; }
+    input, select { display: block; width: 100%; border: 1px solid #829991; background: white; color: inherit; }
+    button { cursor: pointer; border: 1px solid #17614e; background: #17614e; color: white; font-weight: 650; }
+    button.secondary { background: white; color: #17614e; }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 3px solid #537ef0; outline-offset: 3px; }
+    [aria-invalid="true"] { border-color: #a02d25; }
+    .error { color: #a02d25; }
+    .muted { color: #465e55; }
+    ul { list-style: none; margin: 1rem 0 0; padding: 0; }
+    li { margin: .6rem 0; padding: .75rem; background: #e9f6ee; border-radius: .5rem; }
+    #back { margin-bottom: 1rem; }
+    summary { cursor: pointer; }
+    @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>Club Equipment Lending</header>
+  <main>
+    <section id="catalog-screen">
+      <h1 id="catalog-title" tabindex="-1">Thiết bị</h1>
+      <p id="catalog-message" role="status"></p>
+      <ul id="catalog-list"></ul>
+      <button id="catalog-retry" hidden type="button">Thử lại</button>
+    </section>
+    <div id="availability-screen" hidden>
+      <button id="back" class="secondary" type="button">Về danh mục</button>
+      <h1 id="availability-title" tabindex="-1">Lịch trống thiết bị</h1>
+      <div class="layout">
+        <section aria-labelledby="filters">
+          <h2 id="filters">Khoảng tra cứu</h2>
+          <p class="muted">Giờ CLB · Asia/Bangkok (UTC+07:00)</p>
+          <form id="lookup" novalidate>
+            <fieldset id="fields">
+              <label for="equipment">Thiết bị
+                <select id="equipment" required></select>
+              </label>
+              <label for="from">Bắt đầu
+                <input id="from" type="datetime-local" value="2026-11-16T09:00" required aria-describedby="from-error">
+                <small id="from-error" class="error"></small>
+              </label>
+              <label for="to">Kết thúc
+                <input id="to" type="datetime-local" value="2026-11-16T13:00" required aria-describedby="to-error">
+                <small id="to-error" class="error"></small>
+              </label>
+              <button type="submit">Xem lịch trống</button>
+            </fieldset>
+          </form>
+        </section>
+        <section aria-labelledby="results">
+          <h2 id="results">Khung giờ trống</h2>
+          <p class="muted">Giờ CLB · Asia/Bangkok (UTC+07:00)</p>
+          <div role="status" aria-live="polite">
+            <p id="context"></p>
+            <p id="status"></p>
+            <ul id="slots"></ul>
+            <p id="updated" class="muted"></p>
+          </div>
+          <button id="retry" class="secondary" hidden type="button">Thử lại</button>
+          <button id="reload-catalog" class="secondary" hidden type="button">Tải lại danh mục</button>
+        </section>
+      </div>
+    </div>
+    <section id="login-screen" hidden>
+      <h1 id="login-title" tabindex="-1">Đăng nhập</h1>
+      <p>Phiên đã hết hạn. Đăng nhập lại để xem lịch.</p>
+      <button id="login" type="button">Đăng nhập mô phỏng</button>
+    </section>
+    <details>
+      <summary>Điều khiển mô phỏng</summary>
+      <label for="catalog-mode">Danh mục
+        <select id="catalog-mode">
+          <option value="ready">Hai thiết bị mẫu</option>
+          <option value="empty">Danh mục rỗng</option>
+          <option value="error">Lỗi tải danh mục</option>
+        </select>
+      </label>
+      <label for="lookup-mode">Phản hồi cho lượt tra cứu kế tiếp
+        <select id="lookup-mode">
+          <option value="ready">Theo dữ liệu tổng hợp</option>
+          <option value="slow">Phản hồi chậm</option>
+          <option value="invalid">400 · Dữ liệu không hợp lệ</option>
+          <option value="session">401 · Hết phiên</option>
+          <option value="forbidden">403 · Thiếu quyền</option>
+          <option value="missing">404 · Thiết bị không còn khả dụng</option>
+          <option value="error">500 · Lỗi tải lịch</option>
+        </select>
+      </label>
+    </details>
+  </main>
+  <script>
+    const element = (id) => document.getElementById(id);
+    const select = element('equipment');
+    const fromInput = element('from');
+    const toInput = element('to');
+    const lookupMode = element('lookup-mode');
+    const equipment = [
+      { id: 1, name: 'Máy chiếu', code: 'DEMO-01' },
+      { id: 2, name: 'Máy chiếu', code: 'DEMO-02' }
+    ];
+    const bookings = [
+      ['07:00', '09:00', 'APPROVED'],
+      ['08:30', '10:00', 'APPROVED'],
+      ['10:00', '11:00', 'HANDED_OVER'],
+      ['11:00', '11:30', 'PENDING'],
+      ['11:30', '12:00', 'REJECTED'],
+      ['12:00', '13:00', 'RETURNED'],
+      ['13:00', '14:00', 'APPROVED']
+    ];
+    const format = new Intl.DateTimeFormat('vi-VN', {
+      timeZone: 'Asia/Bangkok', dateStyle: 'short', timeStyle: 'short'
+    });
+    let revision = 0;
+    let catalogRevision = 0;
+
+    function toUtc(local) {
+      return Date.parse(local + ':00+07:00');
+    }
+
+    function available(id, from, to) {
+      const slots = [];
+      let cursor = from;
+      if (id === 1) {
+        for (const [start, end, status] of bookings) {
+          if (!['APPROVED', 'HANDED_OVER'].includes(status)) continue;
+          const lower = Math.max(from, toUtc('2026-11-16T' + start));
+          const upper = Math.min(to, toUtc('2026-11-16T' + end));
+          if (upper <= lower) continue;
+          if (cursor < lower) slots.push([cursor, lower]);
+          cursor = Math.max(cursor, upper);
+        }
+      }
+      if (cursor < to) slots.push([cursor, to]);
+      return slots;
+    }
+
+    function show(screen) {
+      for (const name of ['catalog', 'availability', 'login']) {
+        element(name + '-screen').hidden = name !== screen;
+      }
+      element(screen + '-title').focus();
+    }
+
+    function errorFor(input, message = '') {
+      element(input.id + '-error').textContent = message;
+      input.setAttribute('aria-invalid', String(Boolean(message)));
+    }
+
+    function clearResult(message = 'Chọn khoảng thời gian rồi xem lịch trống.') {
+      revision += 1;
+      for (const id of ['context', 'updated', 'slots']) element(id).replaceChildren();
+      for (const id of ['retry', 'reload-catalog']) element(id).hidden = true;
+      element('status').textContent = message;
+      element('status').classList.remove('error');
+      errorFor(fromInput);
+      errorFor(toInput);
+    }
+
+    function loadCatalog() {
+      clearResult();
+      show('catalog');
+      const request = ++catalogRevision;
+      const mode = element('catalog-mode').value;
+      element('catalog-list').replaceChildren();
+      element('catalog-retry').hidden = true;
+      element('catalog-message').textContent = 'Đang tải danh mục…';
+      setTimeout(() => {
+        if (request !== catalogRevision) return;
+        const messages = { empty: 'Chưa có thiết bị để tra cứu.', error: 'Chưa tải được danh mục.', ready: '' };
+        element('catalog-message').textContent = messages[mode];
+        element('catalog-retry').hidden = mode !== 'error';
+        if (mode !== 'ready') return;
+        for (const device of equipment) {
+          const row = document.createElement('li');
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = 'Xem lịch · ' + device.name + ' · ' + device.code;
+          button.addEventListener('click', () => {
+            select.value = device.id;
+            clearResult();
+            show('availability');
+          });
+          row.append(button);
+          element('catalog-list').append(row);
+        }
+      }, 500);
+    }
+
+    function lookup(event) {
+      event?.preventDefault();
+      clearResult('');
+      const from = toUtc(fromInput.value);
+      const to = toUtc(toInput.value);
+      const fromError = Number.isFinite(from) ? '' : 'Nhập ngày giờ bắt đầu hợp lệ.';
+      const toError = !Number.isFinite(to) ? 'Nhập ngày giờ kết thúc hợp lệ.'
+        : to <= from ? 'Giờ kết thúc phải sau giờ bắt đầu.' : '';
+      errorFor(fromInput, fromError);
+      errorFor(toInput, toError);
+      if (fromError || toError) {
+        (fromError ? fromInput : toInput).focus();
+        return;
+      }
+      const device = equipment.find(({ id }) => id === Number(select.value));
+      const mode = lookupMode.value;
+      lookupMode.value = 'ready';
+      const request = revision;
+      element('status').textContent = 'Đang tải lịch…';
+      setTimeout(() => {
+        if (request !== revision) return;
+        if (mode === 'session') {
+          clearResult();
+          show('login');
+          return;
+        }
+        const errors = {
+          invalid: 'Kiểm tra thiết bị và ngày giờ đã nhập.',
+          forbidden: 'Tài khoản thiếu quyền xem lịch.',
+          missing: 'Thiết bị không còn khả dụng.',
+          error: 'Chưa tải được lịch. Hãy thử lại.'
+        };
+        if (errors[mode]) {
+          element('status').textContent = errors[mode];
+          element('status').classList.add('error');
+          element('retry').hidden = mode !== 'error';
+          element('reload-catalog').hidden = mode !== 'missing';
+          return;
+        }
+        const slots = available(device.id, from, to);
+        element('context').textContent = device.name + ' · ' + device.code + ' · ' + format.format(from) + ' → ' + format.format(to);
+        element('status').textContent = slots.length ? '' : 'Không có khung giờ trống trong khoảng đã chọn.';
+        for (const [start, end] of slots) {
+          const row = document.createElement('li');
+          row.textContent = format.format(start) + ' → ' + format.format(end);
+          element('slots').append(row);
+        }
+        element('updated').textContent = 'Cập nhật lúc ' + format.format(Date.now());
+      }, mode === 'slow' ? 2500 : 650);
+    }
+
+    for (const { id, name, code } of equipment) select.add(new Option(name + ' · ' + code, id));
+    for (const input of [select, fromInput, toInput]) input.addEventListener('input', () => clearResult('Lựa chọn đã thay đổi. Xem lịch trống để cập nhật.'));
+    element('lookup').addEventListener('submit', lookup);
+    element('retry').addEventListener('click', lookup);
+    for (const id of ['back', 'catalog-retry', 'reload-catalog', 'login']) element(id).addEventListener('click', loadCatalog);
+    element('catalog-mode').addEventListener('change', () => {
+      if (element('login-screen').hidden) loadCatalog();
+    });
+    loadCatalog();
+  </script>
+</body>
+</html>

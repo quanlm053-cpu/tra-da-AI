@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mượn thiết bị CLB</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header><div class="bar">
+    <strong>Mượn thiết bị CLB</strong>
+    <nav aria-label="Điều hướng chính">
+      <span id="role"></span>
+      <a href="#equipment" id="equipment-link" hidden>Danh mục</a>
+      <a href="#requests" id="requests-link" hidden>Yêu cầu của tôi</a>
+      <a href="#management" id="management-link" hidden>Quản lý</a>
+      <a href="#management/approved" id="approved-link" hidden>Yêu cầu đã duyệt</a>
+      <a href="#management/handed-over" id="handed-over-link" hidden>Yêu cầu đã giao</a>
+      <button type="button" id="logout" hidden>Đăng xuất</button>
+    </nav>
+  </div></header>
+  <div class="layout">
+    <main class="panel" id="app-panel">
+      <noscript>Vui lòng bật JavaScript để sử dụng ứng dụng.</noscript>
+      <section id="session" aria-labelledby="session-title">
+        <h1 id="session-title" tabindex="-1">Phiên đăng nhập</h1>
+        <p id="session-status" role="status">Đang kiểm tra phiên…</p>
+        <button type="button" id="session-retry" hidden>Thử lại</button>
+      </section>
+      <section id="login" aria-labelledby="login-title" hidden>
+        <h1 id="login-title" tabindex="-1">Đăng nhập</h1>
+        <form id="login-form" method="post">
+          <label for="username">Tên đăng nhập</label>
+          <input id="username" autocomplete="username" maxlength="128" required>
+          <label for="password">Mật khẩu</label>
+          <input id="password" type="password" autocomplete="current-password" required>
+          <p id="login-status" role="status"></p>
+          <div class="actions">
+            <button class="primary" id="submit" type="submit">Đăng nhập</button>
+            <a href="#register" id="open-register">Đăng ký</a>
+          </div>
+        </form>
+        <h2 class="demo-heading">Tài khoản mẫu</h2>
+        <div class="actions">
+          <button type="button" data-demo="demo.member">Điền tên thành viên</button>
+          <button type="button" data-demo="demo.manager">Điền tên quản lý</button>
+        </div>
+      </section>
+      <section id="register" aria-labelledby="register-title" hidden>
+        <h1 id="register-title" tabindex="-1">Đăng ký tài khoản</h1>
+        <form id="register-form" method="post" novalidate>
+          <fieldset id="register-fields">
+            <label for="register-name">Tên đăng nhập</label>
+            <input id="register-name" autocomplete="username" autocapitalize="none" spellcheck="false"
+              aria-describedby="register-name-hint register-name-error" required>
+            <p id="register-name-hint" class="muted">3–64 ký tự sau khi bỏ khoảng trắng ở hai đầu, tối đa 128 ký tự UTF-16 khi nhập. Bắt đầu bằng chữ cái ASCII hoặc số. Có thể dùng dấu chấm, gạch dưới và gạch ngang ở các vị trí tiếp theo.</p>
+            <p id="register-name-error" role="alert"></p>
+            <label for="register-password">Mật khẩu</label>
+            <input id="register-password" type="password" autocomplete="new-password"
+              aria-describedby="register-password-hint register-password-error" required>
+            <p id="register-password-hint" class="muted">Mật khẩu phải có ít nhất 8 ký tự.</p>
+            <p id="register-password-error" role="alert"></p>
+          </fieldset>
+          <p id="register-status" role="status"></p>
+          <p id="register-error" role="alert"></p>
+          <div class="actions">
+            <button class="primary" id="register-submit" type="submit">Tạo tài khoản</button>
+            <a href="#login">Về đăng nhập</a>
+          </div>
+        </form>
+      </section>
+      <section id="register-success" aria-labelledby="register-success-title" hidden>
+        <h1 id="register-success-title" tabindex="-1">Đã tạo tài khoản</h1>
+        <p>Tài khoản <strong id="created-name"></strong> đã sẵn sàng. Hãy đăng nhập bằng mật khẩu vừa tạo.</p>
+        <a href="#login">Về đăng nhập</a>
+      </section>
+      <section id="equipment" aria-labelledby="equipment-title" hidden>
+        <h1 id="equipment-title" tabindex="-1">Danh mục thiết bị</h1>
+        <p id="catalog-status" role="status"></p>
+        <button type="button" id="retry" hidden>Thử lại</button>
+        <ul id="assets" class="assets" role="list" hidden></ul>
+      </section>
+      <section id="availability" aria-labelledby="availability-title" hidden>
+        <a href="#equipment">Về danh mục</a>
+        <h1 id="availability-title" tabindex="-1">Lịch trống thiết bị</h1>
+        <div class="availability-grid">
+          <section class="availability-card" aria-labelledby="lookup-title">
+            <h2 id="lookup-title">Khoảng tra cứu</h2>
+            <p class="muted">Giờ CLB · Asia/Bangkok (UTC+07:00)</p>
+            <p id="lookup-catalog-status" role="status"></p>
+            <button type="button" id="lookup-catalog-retry" hidden>Thử lại</button>
+            <form id="lookup" novalidate>
+              <fieldset id="lookup-fields" disabled aria-labelledby="lookup-title">
+                <label for="device">Thiết bị</label>
+                <select id="device" required aria-describedby="device-error"></select>
+                <small id="device-error" class="error"></small>
+                <label for="from">Bắt đầu</label>
+                <input id="from" type="datetime-local" step="60" required aria-describedby="from-error">
+                <small id="from-error" class="error"></small>
+                <label for="to">Kết thúc</label>
+                <input id="to" type="datetime-local" step="60" required aria-describedby="to-error">
+                <small id="to-error" class="error"></small>
+                <button class="primary" type="submit">Xem lịch trống</button>
+              </fieldset>
+            </form>
+          </section>
+          <section class="availability-card" aria-labelledby="slots-title">
+            <h2 id="slots-title">Khung giờ trống</h2>
+            <p class="muted">Giờ CLB · Asia/Bangkok (UTC+07:00)</p>
+            <div role="status" aria-live="polite">
+              <p id="lookup-context"></p>
+              <p id="lookup-status"></p>
+              <ul id="slots" class="slots" role="list" hidden></ul>
+              <p id="lookup-updated" class="muted"></p>
+            </div>
+            <button id="lookup-retry" type="button" hidden>Thử lại</button>
+            <a href="#equipment" id="reload-catalog" hidden>Tải lại danh mục</a>
+          </section>
+        </div>
+      </section>
+      <section id="requests" aria-labelledby="requests-title" hidden>
+        <div class="request-heading">
+          <h1 id="requests-title" tabindex="-1">Yêu cầu của tôi</h1>
+          <a id="new-request-link" class="request-primary" href="#request/new">Gửi yêu cầu</a>
+        </div>
+        <p class="muted">Giờ CLB (UTC+7)</p>
+        <p id="requests-status" role="status"></p>
+        <button type="button" data-request-retry hidden>Thử lại</button>
+        <ul id="request-rows" class="assets" role="list"></ul>
+      </section>
+      <section id="request-detail" aria-labelledby="request-detail-title" hidden>
+        <div class="request-heading">
+          <h1 id="request-detail-title" tabindex="-1">Chi tiết yêu cầu</h1>
+          <span id="request-badge" class="request-badge" hidden></span>
+        </div>
+        <p id="request-confirmation" role="status" hidden></p>
+        <p id="request-detail-status" role="status"></p>
+        <button type="button" data-request-retry hidden>Thử lại</button>
+        <div id="request-data" hidden>
+          <p class="muted">Giờ CLB (UTC+7)</p>
+          <dl class="request-grid">
+            <div><dt>Thiết bị</dt><dd id="detail-device"></dd></div>
+            <div><dt>Thời điểm gửi</dt><dd id="detail-created"></dd></div>
+            <div><dt>Bắt đầu</dt><dd id="detail-start"></dd></div>
+            <div><dt>Kết thúc</dt><dd id="detail-end"></dd></div>
+          </dl>
+        </div>
+        <p><a href="#requests">Về danh sách yêu cầu</a></p>
+      </section>
+      <section id="request-new" aria-labelledby="request-new-title" hidden>
+        <h1 id="request-new-title" tabindex="-1">Gửi yêu cầu</h1>
+        <p class="muted">Giờ CLB (UTC+7)</p>
+        <p id="request-catalog-status" role="status"></p>
+        <button type="button" id="request-catalog-retry" hidden>Thử lại</button>
+        <form id="request-form" novalidate hidden>
+          <p id="request-submit-status" role="status"></p>
+          <fieldset id="request-fields" disabled>
+            <label for="request-device">Thiết bị</label>
+            <select id="request-device" required aria-describedby="request-device-error"></select>
+            <small id="request-device-error" class="error"></small>
+            <div class="request-grid">
+              <div>
+                <label for="request-start">Bắt đầu</label>
+                <input id="request-start" type="datetime-local" step="any" required aria-describedby="request-start-error">
+                <small id="request-start-error" class="error"></small>
+              </div>
+              <div>
+                <label for="request-end">Kết thúc</label>
+                <input id="request-end" type="datetime-local" step="any" required aria-describedby="request-end-error">
+                <small id="request-end-error" class="error"></small>
+              </div>
+            </div>
+            <button type="submit" class="primary">Gửi yêu cầu</button>
+          </fieldset>
+        </form>
+        <p><a href="#requests">Về danh sách yêu cầu</a></p>
+      </section>
+      <section id="management" aria-labelledby="management-title" hidden>
+        <h1 id="management-title" tabindex="-1">Duyệt yêu cầu mượn</h1>
+        <p id="management-zone" class="muted">Giờ CLB · Asia/Bangkok (UTC+7)</p>
+        <p><a id="management-back" href="#management" hidden>Về hàng đợi</a></p>
+        <p id="management-feedback" role="status"></p>
+        <a id="return-detail-link" hidden>Xem chi tiết</a>
+        <form id="return-lookup" hidden>
+          <label for="return-lookup-id">Mã yêu cầu (ví dụ YC-42)</label>
+          <input id="return-lookup-id" required aria-describedby="return-lookup-error">
+          <button type="submit">Tra cứu chi tiết</button>
+          <p id="return-lookup-error" role="status"></p>
+        </form>
+        <div class="management-actions">
+          <h2 id="management-list-title" hidden>Đang chờ</h2>
+          <button id="management-refresh" type="button" hidden>Làm mới</button>
+        </div>
+        <p id="management-status" role="status"></p>
+        <div id="management-recovery" class="management-actions"></div>
+        <ul id="management-rows" class="assets" aria-label="Yêu cầu mượn" role="list"></ul>
+        <p><a href="#equipment">Về danh mục</a></p>
+      </section>
+      <p id="action-status" role="status"></p>
+    </main>
+  </div>
+  <dialog id="decision-dialog" aria-labelledby="decision-title" aria-describedby="decision-summary">
+    <h2 id="decision-title"></h2>
+    <p id="decision-summary"></p>
+    <form method="dialog" class="management-actions">
+      <button value="cancel" autofocus>Hủy</button>
+      <button id="decision-confirm" class="primary" value="confirm">Xác nhận</button>
+    </form>
+  </dialog>
+</body>
+</html>
