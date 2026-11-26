@@ -121,7 +121,10 @@ class ProviderTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'đăng nhập'):check_available(self.config(provider),require_auth=True)
 
     def test_options_never_return_keys_or_unverified_auth_success(self):
-        with patch.dict(os.environ,{'ANTHROPIC_API_KEY':'secret-test-key','GEMINI_API_KEY':'secret-google-key'}):
+        cache=self.root/'.codex/models_cache.json'
+        cache.parent.mkdir(parents=True,exist_ok=True)
+        cache.write_text(json.dumps({'models':[{'slug':'codex-test','display_name':'Test model'}]}),encoding='utf-8')
+        with patch.dict(os.environ,{'ANTHROPIC_API_KEY':'secret-test-key','GEMINI_API_KEY':'secret-google-key'}),patch('agent_settings.Path.home',return_value=self.root):
             options=runtime_options()
         self.assertEqual(options['provider_runtime_version'],1)
         self.assertEqual({r['id'] for r in options['adapters']},{'codex','claude','gemini'})
